@@ -1,5 +1,5 @@
 import type { Order } from "./types"
-import { getAllOrdersFromDb, getOrderByIdFromDb, saveOrderToDatabase, convertCsvToDbOrder } from "./db-service"
+import { getAllOrdersFromDb, getOrderByIdFromDb, saveOrderToDatabase, localConvertCsvToDbOrder } from "./db-service"
 
 const CSV_URL = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/orders-sVkG73FndiUbAhEkmL8oHn86k9FeBE.csv"
 
@@ -11,7 +11,10 @@ export async function fetchOrdersData(): Promise<Order[]> {
 
     // If we have orders in the database, return them
     if (dbOrders.length > 0) {
-      return dbOrders
+      return dbOrders.map(order => ({
+        ...order,
+        salesChannel: order.salesChannel || "website", // Ensure salesChannel is always a string
+      }))
     }
 
     // Otherwise, fetch from CSV
@@ -26,7 +29,10 @@ export async function fetchOrdersData(): Promise<Order[]> {
 
     // Save orders to database for future use
     for (const order of orders) {
-      const dbOrder = convertCsvToDbOrder(order)
+      const dbOrder = await localConvertCsvToDbOrder({
+        ...order,
+        printStatus: order.printStatus || "NOT_PRINTED", // Ensure printStatus is always defined
+      })
       await saveOrderToDatabase(dbOrder)
     }
 
@@ -121,7 +127,10 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
     // First, try to get the order from the database
     const dbOrder = await getOrderByIdFromDb(orderId)
     if (dbOrder) {
-      return dbOrder
+      return {
+        ...dbOrder,
+        salesChannel: dbOrder.salesChannel || "website", // Ensure salesChannel is always a string
+      }
     }
 
     // If not found in the database, check the CSV
@@ -132,7 +141,10 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
 
     // If found in CSV, save to database for future use
     if (order) {
-      const dbOrder = convertCsvToDbOrder(order)
+      const dbOrder = await localConvertCsvToDbOrder({
+        ...order,
+        printStatus: order.printStatus || "NOT_PRINTED", // Ensure printStatus is always defined
+      })
       await saveOrderToDatabase(dbOrder)
     }
 

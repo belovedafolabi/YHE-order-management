@@ -8,11 +8,11 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Order {
-  id            String   @id @default(cuid())
-  orderId       String   @unique
+  orderId       String   @id
   customerName  String
   phone         String?
   product       String
@@ -21,11 +21,10 @@ model Order {
   payStatus     String
   shipStatus    String
   shipDetail    String?
-  date          String
+  date          DateTime
   printStatus   String
-  imageLink     String?  // JSON string of ImageLink[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  imageLink     String?
+  createdAt     DateTime @default(now()) // Add this if you need a creation timestamp
 }
 
 model PredesignedDesign {

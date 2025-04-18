@@ -26,7 +26,7 @@ export interface ProductInfo {
 export interface DatabaseOrder {
   orderId: string
   customerName: string
-  phone?: string
+  phone?: string | null
   product: string
   total: number
   orderStatus: string
