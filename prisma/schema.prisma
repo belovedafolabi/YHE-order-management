@@ -1,0 +1,39 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Order {
+  id            String   @id @default(cuid())
+  orderId       String   @unique
+  customerName  String
+  phone         String?
+  product       String
+  total         Float
+  orderStatus   String
+  payStatus     String
+  shipStatus    String
+  shipDetail    String?
+  date          String
+  printStatus   String
+  imageLink     String?  // JSON string of ImageLink[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model PredesignedDesign {
+  id          String   @id @default(cuid())
+  designId    String   @unique
+  name        String
+  path        String
+  publicId    String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
