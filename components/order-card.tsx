@@ -92,20 +92,21 @@ export function OrderCard({ order }: OrderCardProps) {
             </div>
           </div>
           <div className="grid gap-2">
-            <PhoneNumberInput orderId={order.orderId} initialPhoneNumber={order.phoneNumber} />
+            <PhoneNumberInput orderId={order.orderId} initialPhoneNumber={order.phone} />
           </div>
           <div className="grid gap-2">
             <div className="text-sm font-medium text-muted-foreground">Status</div>
             <div className="flex flex-wrap gap-2">
-              <span className="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500 transition-all duration-300 hover:bg-amber-500/20">
-                Print Status: {order.orderStatus === "PRINTED" ? "Printed" : "Not Printed"}
-              </span>
-              <span className="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500 transition-all duration-300 hover:bg-amber-500/20">
-                Payment: {order.paymentStatus || "PENDING"}
-              </span>
+              
               <span className="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500 transition-all duration-300 hover:bg-amber-500/20">
                 Shipping: {order.shippingStatus || "PENDING"}
               </span>
+              <span className="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500 transition-all duration-300 hover:bg-amber-500/20">
+                Print Status: {order.orderStatus === "PRINTED" ? "Printed" : "Not Printed"}
+              </span>
+              {/* <span className="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500 transition-all duration-300 hover:bg-amber-500/20">
+                Payment: {order.paymentStatus || "PENDING"}
+              </span> */}
             </div>
           </div>
           <div className="grid gap-4">

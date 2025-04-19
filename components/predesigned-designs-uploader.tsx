@@ -10,7 +10,11 @@ import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { useToast } from "@/hooks/use-toast"
 import { uploadPredesignedDesign } from "@/lib/actions"
+import { uploadToCloudinary } from "@/app/api/cloudinary/route"
 import { Upload, Loader2, Check, AlertCircle, ImageIcon } from "lucide-react"
+import { upload } from "@/lib/cloudinary-server"
+import axios from "axios"
+import { revalidatePath } from "next/cache"
 
 // Zod schema for file validation
 const fileSchema = z
@@ -44,7 +48,16 @@ export function PredesignedDesignsUploader() {
   const [success, setSuccess] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { toast } = useToast()
+  const { toast } = useToast();
+
+  const readFileAsDataURL = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    })
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -77,7 +90,6 @@ export function PredesignedDesignsUploader() {
         if (err instanceof z.ZodError) {
           setError(err.errors[0].message)
           toast({
-            variant: "destructive",
             title: "Invalid file",
             description: err.errors[0].message,
           })
@@ -90,7 +102,6 @@ export function PredesignedDesignsUploader() {
     if (!file) {
       setError("Please select a file to upload")
       toast({
-        variant: "destructive",
         title: "Missing file",
         description: "Please select an image file to upload",
       })
@@ -98,6 +109,12 @@ export function PredesignedDesignsUploader() {
     }
 
     try {
+      let newFile = await readFileAsDataURL(file);
+      let data = {
+        file: newFile,
+        designId: designId,
+        designName: designName
+      }
       // Validate design ID and name
       designIdSchema.parse(designId)
       designNameSchema.parse(designName)
@@ -113,21 +130,40 @@ export function PredesignedDesignsUploader() {
         description: "Please wait while we upload your design",
       })
 
+      console.log
+
+      await axios.post("/api/admin/design", data, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        // onUploadProgress: (progressEvent) => {
+        //   const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+        //   setProgress(percentCompleted)
+        // },
+      }).then((response) => {
+      } )
+      .catch((error) => {
+        console.log("Error uploading design:", error)
+      })
+
+
       // Simulate progress
-      const interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 95) {
-            clearInterval(interval)
-            return 95
-          }
-          return prev + 5
-        })
-      }, 100)
+      // const interval = setInterval(() => {
+      //   setProgress((prev) => {
+      //     if (prev >= 95) {
+      //       clearInterval(interval)
+      //       return 95
+      //     }
+      //     return prev + 5
+      //   })
+      // }, 100)
 
       // Upload the file to Cloudinary
-      await uploadPredesignedDesign(file, designId, designName)
+      // await uploadPredesignedDesign(file, designId, designName)
+      // await upload(data.file, "yhe/predesigned", designId)
+      // await uploadToCloudinary(file, {folder: "yhe/predesigned", public_id: designId})
 
-      clearInterval(interval)
+      // clearInterval(interval)
       setProgress(100)
       setSuccess(true)
 
@@ -137,7 +173,6 @@ export function PredesignedDesignsUploader() {
       toast({
         title: "Design uploaded successfully",
         description: "Your predesigned t-shirt design has been uploaded",
-        variant: "success",
       })
 
       // Reset form after successful upload
@@ -156,21 +191,18 @@ export function PredesignedDesignsUploader() {
       if (err instanceof z.ZodError) {
         setError(err.errors[0].message)
         toast({
-          variant: "destructive",
           title: "Validation error",
           description: err.errors[0].message,
         })
       } else if (err instanceof Error) {
         setError(err.message)
         toast({
-          variant: "destructive",
           title: "Upload failed",
           description: err.message,
         })
       } else {
         setError("Failed to upload design")
         toast({
-          variant: "destructive",
           title: "Upload failed",
           description: "There was an error uploading your design",
         })
@@ -243,20 +275,30 @@ export function PredesignedDesignsUploader() {
             </div>
           </div>
 
-          <div className="grid gap-2">
+            <div className="grid gap-2">
             <Label htmlFor="designName">Design Name</Label>
             <Input
               id="designName"
               value={designName}
-              onChange={(e) => setDesignName(e.target.value)}
+              onChange={(e) => {
+              const name = e.target.value
+              setDesignName(name)
+
+              // Auto-generate design ID from design name
+              const sanitizedId = name
+                .toLowerCase()
+                .replace(/\s+/g, "-")
+                .replace(/[^a-z0-9-]/g, "")
+              setDesignId(sanitizedId)
+              }}
               placeholder="e.g. Class of 2025"
               disabled={uploading}
               className="border-amber-500/20 focus-visible:ring-amber-500"
             />
             <p className="text-xs text-muted-foreground">Display name for the design that will be shown to users.</p>
-          </div>
+            </div>
 
-          <div className="grid gap-2">
+            <div className="grid gap-2">
             <Label htmlFor="designId">Design ID</Label>
             <Input
               id="designId"
@@ -269,7 +311,7 @@ export function PredesignedDesignsUploader() {
             <p className="text-xs text-muted-foreground">
               Used for internal reference. Only lowercase letters, numbers, and hyphens.
             </p>
-          </div>
+            </div>
 
           {uploading && (
             <div className="grid gap-2">

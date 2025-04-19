@@ -1,119 +1,48 @@
 import type { Order } from "./types"
 import { getAllOrdersFromDb, getOrderByIdFromDb, saveOrderToDatabase, localConvertCsvToDbOrder } from "./db-service"
+import Papa from "papaparse";
 
-const CSV_URL = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/orders-sVkG73FndiUbAhEkmL8oHn86k9FeBE.csv"
+const CSV_URL = "https://bfa-portfolio.vercel.app/docs/order.csv"
+//const CSV_URL = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/orders-sVkG73FndiUbAhEkmL8oHn86k9FeBE.csv"
 
-// Function to fetch and parse the CSV data
-export async function fetchOrdersData(): Promise<Order[]> {
-  try {
-    // First, try to get orders from the database
-    const dbOrders = await getAllOrdersFromDb()
-
-    // If we have orders in the database, return them
-    if (dbOrders.length > 0) {
-      return dbOrders.map(order => ({
-        ...order,
-        salesChannel: order.salesChannel || "website", // Ensure salesChannel is always a string
-      }))
-    }
-
-    // Otherwise, fetch from CSV
-    const response = await fetch(CSV_URL, { cache: "no-store" })
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch CSV: ${response.status}`)
-    }
-
-    const csvText = await response.text()
-    const orders = parseCSV(csvText)
-
-    // Save orders to database for future use
-    for (const order of orders) {
-      const dbOrder = await localConvertCsvToDbOrder({
-        ...order,
-        printStatus: order.printStatus || "NOT_PRINTED", // Ensure printStatus is always defined
-      })
-      await saveOrderToDatabase(dbOrder)
-    }
-
-    return orders
-  } catch (error) {
-    console.error("Error fetching orders data:", error)
-    return []
-  }
+// Utility function to convert a string to camelCase
+function toCamelCase(str: string): string {
+  return str.toLowerCase().replace(/\s(.)/g, (_, char) => char.toUpperCase())
 }
 
-// Function to parse CSV text into Order objects
-function parseCSV(csvText: string): Order[] {
-  const lines = csvText.split("\n")
-  if (lines.length === 0) return []
+/**
+ * Fetch and parse all orders from the CSV, without persisting to DB
+ */
+export async function fetchOrdersData(): Promise<Order[]> {
+  try {
+    const response = await fetch(CSV_URL, { cache: "no-store" })
+    if (!response.ok) throw new Error(`Failed to fetch CSV: ${response.status}`)
 
-  const headers = lines[0].split(",")
-  const orders: Order[] = []
-
-  for (let i = 1; i < lines.length; i++) {
-    if (!lines[i].trim()) continue
-
-    // Handle quoted CSV values properly
-    const values: string[] = []
-    let currentValue = ""
-    let inQuotes = false
-
-    for (const char of lines[i]) {
-      if (char === '"') {
-        inQuotes = !inQuotes
-      } else if (char === "," && !inQuotes) {
-        values.push(currentValue)
-        currentValue = ""
-      } else {
-        currentValue += char
-      }
-    }
-
-    // Add the last value
-    values.push(currentValue)
-
-    // Skip if we don't have enough values
-    if (values.length < headers.length) {
-      console.warn(`Skipping row ${i}: not enough values`)
-      continue
-    }
-
-    const order: Partial<Order> = {}
-
-    headers.forEach((header, index) => {
-      const val = values[index]?.trim()
-
-      if (header === "Order ID") {
-        order.orderId = val
-      } else if (header === "Total") {
-        order.total = val ? Number.parseFloat(val) : 0
-      } else {
-        // Convert header to camelCase
-        const key = header.toLowerCase().replace(/\s(.)/g, (_, char) => char.toUpperCase())
-        // @ts-ignore - Dynamic assignment
-        order[key] = val
-      }
+    const csvText = await response.text()
+    const result = Papa.parse<Record<string, string>>(csvText, {
+      header: true,
+      skipEmptyLines: true,
     })
 
-    // Ensure all required fields have at least default values
-    const safeOrder: Order = {
-      orderId: order.orderId || "Unknown",
-      customer: order.customer || "Unknown",
-      product: order.product || "Unknown",
-      total: order.total || 0,
-      orderStatus: order.orderStatus || "PENDING",
-      paymentStatus: order.paymentStatus || "PENDING",
-      shippingStatus: order.shippingStatus || "PENDING",
-      shippingDetails: order.shippingDetails || "",
-      salesChannel: order.salesChannel || "website",
-      date: order.date || new Date().toDateString(),
-    }
-
-    orders.push(safeOrder)
+    return result.data.map(rec => ({
+      orderId: rec["Order ID"]?.trim().padStart(5, "0") || "00000",
+      customer: rec["Customer"]?.trim() || "Unknown",
+      product: rec["Product"]?.trim() || "Unknown",
+      total: rec["Total"] ? parseFloat(rec["Total"]) : 0,
+      orderStatus: rec["Order Status"]?.trim() || "PENDING",
+      paymentStatus: rec["Payment Status"]?.trim() || "PENDING",
+      shippingStatus: rec["Shipping Status"]?.trim() || "PENDING",
+      shippingDetails: rec["Shipping Details"]?.trim() || "",
+      salesChannel: rec["Sales Channel"]?.trim() || "website",
+      date:
+        rec["Date"] && !isNaN(Date.parse(rec["Date"]))
+          ? rec["Date"].trim()
+          : new Date().toISOString(),
+    }))
+  } catch (error) {
+    console.error("Error parsing CSV:", error)
+    return []
   }
-
-  return orders
 }
 
 // Function to get all orders

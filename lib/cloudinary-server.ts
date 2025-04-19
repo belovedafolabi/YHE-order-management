@@ -5,7 +5,13 @@ cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true,
 });
+
+export const upload = async (file: string, folder: string, id: string): Promise<any> => {
+  const result = await cloudinary.uploader.upload(file, {folder, public_id: id }  )
+  return result.secure_url
+}
 
 // Function to upload an image to Cloudinary
 export async function uploadToCloudinary(

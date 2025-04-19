@@ -34,14 +34,14 @@ export function DesignPreview({
   const { toast } = useToast()
 
   // For demo purposes, we'll use a placeholder if no real URL is provided
-  const imageUrl = designUrl.startsWith("http")
-    ? designUrl
-    : `/placeholder.svg?height=400&width=400&text=${designType === "front" ? "Front" : "Back"}+Design`
+  // const imageUrl = .startsWith("http")
+  //   ? designUrl
+  //   : `/placeholder.svg?height=400&width=400&text=${designType === "front" ? "Front" : "Back"}+Design`
 
   const handleDownload = () => {
     // Create an anchor element and set properties for download
     const link = document.createElement("a")
-    link.href = imageUrl
+    link.href = designUrl
     link.download = `${designType}-design-${Date.now()}.jpg`
     document.body.appendChild(link)
     link.click()
@@ -50,7 +50,6 @@ export function DesignPreview({
     toast({
       title: "Download started",
       description: `Downloading ${designType} design`,
-      variant: "success",
     })
   }
 
@@ -65,7 +64,7 @@ export function DesignPreview({
         )}
       >
         <img
-          src={imageUrl || "/placeholder.svg"}
+          src={designUrl || "/placeholder.svg"}
           alt={`${designType} design`}
           className="h-full w-full object-cover aspect-square"
           loading="lazy"
@@ -89,7 +88,7 @@ export function DesignPreview({
           <div className="flex items-center justify-center p-4 md:p-6">
             <div className="relative max-w-full max-h-[60vh] overflow-hidden">
               <img
-                src={imageUrl || "/placeholder.svg"}
+                src={designUrl || "/placeholder.svg"}
                 alt={`${designType} design`}
                 className="max-h-[60vh] max-w-full object-contain"
               />

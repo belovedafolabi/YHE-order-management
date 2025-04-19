@@ -13,8 +13,12 @@ export const metadata: Metadata = {
   description: "View your order details, track status, and upload designs",
 }
 
-export default async function OrderPage({ params }: { params: { orderId: string } }) {
-  const orderId = params.orderId
+export default async function OrderPage({
+  params,
+}: {
+  params: Promise<{ orderId: string }>
+}) {
+  const { orderId } = await params
 
   // Debug log to see what order ID we're looking for
   console.log(`Looking for order ID: ${orderId}`)
@@ -55,5 +59,5 @@ export default async function OrderPage({ params }: { params: { orderId: string 
         </div>
       </footer>
     </div>
-  )
+)
 }

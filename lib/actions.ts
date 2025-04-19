@@ -1,9 +1,9 @@
-"use server";
+"use server"
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { updatePhoneNumber, updateImageLink, updatePrintStatus } from "./db-service";
-import { uploadToCloudinary } from "../app/api/upload/route";
+import { uploadToCloudinary } from "../app/api/cloudinary/route";
 import { savePredesignedDesign } from "./predesigned-designs";
 import type { ImageLink } from "./types";
 
@@ -21,8 +21,8 @@ function validateFile(file: File): void {
 }
 
 // Zod schema for phone number validation
-export const phoneNumberSchema = z.string().regex(/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/, {
-  message: "Invalid phone number",
+export const phoneNumberSchema = z.string().regex(/^\d{11}$/, {
+  message: "Phone number must be exactly 11 digits and contain only numbers",
 });
 
 // Zod schema for order ID validation
@@ -133,18 +133,20 @@ export async function updateOrderStatus(orderId: string, status: string, type: "
 }
 
 // Function to save phone number
-export async function savePhoneNumber(orderId: string, phoneNumber: string): Promise<void> {
+export async function savePhoneNumber(orderId: string, phone: string): Promise<void> {
+  console.log("savePhoneNumber called with:", orderId, phone);
   try {
+    // Validate orderId
+    orderIdSchema.parse(orderId);
+    console.log("Order ID validated:", orderId);
+
     // Validate phone number
-    phoneNumberSchema.parse(phoneNumber);
+    phoneNumberSchema.parse(phone);
+    console.log("Phone number validated:", phone);
 
-    await updatePhoneNumber(orderId, phoneNumber);
-
-    // Revalidate the paths to reflect the changes
-    revalidatePath(`/order/${orderId}`);
-    revalidatePath("/youcantseethis");
-
-    return Promise.resolve();
+    // Update phone number in the database
+    await updatePhoneNumber(orderId, phone);
+    console.log("Phone number saved successfully");
   } catch (error) {
     console.error("Error saving phone number:", error);
     throw new Error("Failed to save phone number");

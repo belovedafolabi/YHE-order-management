@@ -1,4 +1,4 @@
-"use server";
+"use server"
 
 import { revalidatePath } from "next/cache";
 import prisma from "./prisma";
@@ -28,9 +28,9 @@ export async function checkOrderInDatabase(orderId: string): Promise<DatabaseOrd
     });
 
     if (!order) return null;
-
+    const formattedOrderId = order.orderId.padStart(5, "0");
     return {
-      orderId: order.orderId,
+      orderId: formattedOrderId,
       customerName: order.customerName,
       phone: order.phone || undefined,
       product: order.product,
@@ -51,11 +51,20 @@ export async function checkOrderInDatabase(orderId: string): Promise<DatabaseOrd
 
 export async function saveOrderToDatabase(order: DatabaseOrder): Promise<boolean> {
   try {
-    // Convert the date to ISO-8601 format
-    const isoDate = new Date(order.date).toISOString();
+    // Format the Order ID to a 5-digit padded string
+    const formattedOrderId = order.orderId.padStart(5, "0");
+
+    // Validate and parse the date
+    let isoDate: string;
+    if (order.date && !isNaN(Date.parse(order.date))) {
+      isoDate = new Date(order.date).toISOString(); // Convert valid date to ISO-8601
+    } else {
+      console.warn(`Invalid date value: "${order.date}". Using current date as fallback.`);
+      isoDate = new Date().toISOString(); // Fallback to the current date
+    }
 
     await prisma.order.upsert({
-      where: { orderId: order.orderId },
+      where: { orderId: formattedOrderId },
       update: {
         customerName: order.customerName,
         phone: order.phone || undefined,
@@ -65,12 +74,12 @@ export async function saveOrderToDatabase(order: DatabaseOrder): Promise<boolean
         payStatus: order.payStatus,
         shipStatus: order.shipStatus,
         shipDetail: order.shipDetail || "",
-        date: isoDate, // Use the converted ISO-8601 date
+        date: isoDate, // Use the validated ISO-8601 date
         printStatus: order.printStatus,
         imageLink: order.imageLink || undefined,
       },
       create: {
-        orderId: order.orderId,
+        orderId: formattedOrderId,
         customerName: order.customerName,
         phone: order.phone || undefined,
         product: order.product,
@@ -79,14 +88,11 @@ export async function saveOrderToDatabase(order: DatabaseOrder): Promise<boolean
         payStatus: order.payStatus,
         shipStatus: order.shipStatus,
         shipDetail: order.shipDetail || "",
-        date: isoDate, // Use the converted ISO-8601 date
+        date: isoDate, // Use the validated ISO-8601 date
         printStatus: order.printStatus,
         imageLink: order.imageLink || undefined,
       },
     });
-
-    revalidatePath(`/order/${order.orderId}`);
-    revalidatePath("/youcantseethis");
 
     return true;
   } catch (error) {
@@ -95,17 +101,20 @@ export async function saveOrderToDatabase(order: DatabaseOrder): Promise<boolean
   }
 }
 
-export async function updatePhoneNumber(orderId: string, phone: string): Promise<boolean> {
+export async function updatePhoneNumber(orderId: string, phone: string): Promise<any> {
   try {
-    await prisma.order.update({
-      where: { orderId },
+    console.log("Updating phone number:", orderId, phone);
+    // Validate orderId
+    const formattedID = orderId.padStart(5, "0");
+    let updatedOrder = await prisma.order.update({
+      where: { orderId: formattedID },
       data: { phone },
     });
 
     revalidatePath(`/order/${orderId}`);
     revalidatePath("/youcantseethis");
 
-    return true;
+    return updatedOrder;
   } catch (error) {
     console.error("Error updating phone number:", error);
     return false;

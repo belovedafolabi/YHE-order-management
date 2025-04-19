@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { savePhoneNumber } from "@/lib/actions"
 import { useToast } from "@/hooks/use-toast"
 import { phoneNumberSchema } from "@/lib/actions"
+import { updatePhoneNumber } from "@/lib/db-service"
 
 interface PhoneNumberInputProps {
   orderId: string
@@ -22,6 +23,14 @@ export function PhoneNumberInput({ orderId, initialPhoneNumber }: PhoneNumberInp
   const [success, setSuccess] = useState(false)
   const { toast } = useToast()
 
+  const phoneNumberSchema = z.string().regex(/^\d{11}$/, {
+    message: "Phone number must be 11 digits and contain only numbers",
+  });
+
+  const orderIdSchema = z.string().regex(/^\d+$/, {
+    message: "Order ID must contain only numbers",
+  });
+
   const handleSubmit = async () => {
     // Reset states
     setError(null)
@@ -30,6 +39,7 @@ export function PhoneNumberInput({ orderId, initialPhoneNumber }: PhoneNumberInp
     try {
       // Validate phone number using zod
       phoneNumberSchema.parse(phoneNumber)
+      orderIdSchema.parse(orderId)
 
       setIsSubmitting(true)
 
@@ -38,8 +48,9 @@ export function PhoneNumberInput({ orderId, initialPhoneNumber }: PhoneNumberInp
         title: "Updating phone number",
         description: "Please wait while we save your phone number",
       })
-
-      await savePhoneNumber(orderId, phoneNumber)
+      console.log("Saving phone number:", phoneNumber)
+      // await savePhoneNumber(orderId, phoneNumber)
+      await updatePhoneNumber(orderId, phoneNumber)
 
       // Dismiss loading toast
       loadingToast.dismiss()
@@ -50,18 +61,17 @@ export function PhoneNumberInput({ orderId, initialPhoneNumber }: PhoneNumberInp
       toast({
         title: "Phone number saved",
         description: "Your phone number has been saved successfully",
-        variant: "success",
       })
     } catch (err) {
+      console.log(err)
       if (err instanceof z.ZodError) {
         setError(err.errors[0].message)
       } else {
-        setError("Failed to save phone number. Please try again.")
+        setError("Failed to save phone number Please try again.")
 
         toast({
-          variant: "destructive",
           title: "Error",
-          description: "Failed to save phone number",
+          description: "Failed to save phone number... Please try again.",
         })
       }
     } finally {
@@ -84,7 +94,9 @@ export function PhoneNumberInput({ orderId, initialPhoneNumber }: PhoneNumberInp
           <span>Please provide your phone number for order updates</span>
         </div>
       )}
-
+      {/* <div className="inline-flex max-w-fit items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500 transition-all duration-300 hover:bg-amber-500/20">
+        Phone: {initialPhoneNumber || "No phone number available"}
+      </div> */}
       <div className="flex flex-col sm:flex-row gap-2">
         <Input
           type="tel"
@@ -132,7 +144,7 @@ export function PhoneNumberInput({ orderId, initialPhoneNumber }: PhoneNumberInp
       )}
 
       {success && (
-        <div className="text-sm text-green-500 flex items-center gap-1 animate-fade-in">
+        <div className="text-sm text-amber-500 flex items-center gap-1 animate-fade-in">
           <Check className="h-3 w-3 flex-shrink-0" />
           Phone number saved successfully
         </div>

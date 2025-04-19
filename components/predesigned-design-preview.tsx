@@ -17,6 +17,7 @@ import { getCloudinaryUrl } from "@/lib/predesigned-designs"
 import { useToast } from "@/hooks/use-toast"
 
 interface PredesignedDesignPreviewProps {
+  url: string
   designId: string
   designName: string
   className?: string
@@ -26,6 +27,7 @@ interface PredesignedDesignPreviewProps {
 }
 
 export function PredesignedDesignPreview({
+  url,
   designId,
   designName,
   className,
@@ -49,12 +51,12 @@ export function PredesignedDesignPreview({
   }
 
   // Get the image URL from the design ID
-  const imageUrl = getCloudinaryUrl(`yhe/predesigned/${designId}`)
+  // const imageUrl = getCloudinaryUrl(`yhe/predesigned/${designId}`)
 
   const handleDownload = () => {
     // Create an anchor element and set properties for download
     const link = document.createElement("a")
-    link.href = imageUrl
+    link.href = url
     link.download = `${designId}-${Date.now()}.jpg`
     document.body.appendChild(link)
     link.click()
@@ -63,7 +65,6 @@ export function PredesignedDesignPreview({
     toast({
       title: "Download started",
       description: `Downloading ${designName}`,
-      variant: "success",
     })
   }
 
@@ -79,7 +80,7 @@ export function PredesignedDesignPreview({
           )}
         >
           <img
-            src={imageUrl || "/placeholder.svg"}
+            src={url}
             alt={`${designName} design`}
             className="h-full w-full object-cover aspect-square"
             loading="lazy"
@@ -101,7 +102,7 @@ export function PredesignedDesignPreview({
           <div className="flex items-center justify-center p-4 md:p-6">
             <div className="relative max-w-full max-h-[60vh] overflow-hidden">
               <img
-                src={imageUrl || "/placeholder.svg"}
+                src={url}
                 alt={`${designName} design`}
                 className="max-h-[60vh] max-w-full object-contain"
               />

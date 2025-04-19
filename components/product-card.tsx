@@ -15,7 +15,9 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, orderId, index = 0 }: ProductCardProps) {
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(true);
+  const [frontPreview, setFrontPreview] = useState<string | null>(null);
+  const [backPreview, setBackPreview] = useState<string | null>(null);
 
   // Simulate loading for skeleton demonstration
   useEffect(() => {
@@ -68,13 +70,13 @@ export function ProductCard({ product, orderId, index = 0 }: ProductCardProps) {
                 <div className="flex flex-col gap-2">
                   <div className="text-sm font-medium">Front Design Preview</div>
                   <DesignPreview
-                    designUrl={getFrontDesignUrl()}
+                    designUrl={frontPreview as any}
                     designType="front"
                     productName={formattedName}
                     className="h-24 w-24 transition-transform duration-300 hover:scale-105"
                   />
                 </div>
-                <FileUpload label="Upload Front Design" orderId={orderId} designType="front" productIndex={index} />
+                <FileUpload label="Upload Front Design" orderId={orderId} designType="front" productIndex={index} setPreview={setFrontPreview} />
               </div>
             </div>
           )}
@@ -88,25 +90,25 @@ export function ProductCard({ product, orderId, index = 0 }: ProductCardProps) {
                 <div className="flex flex-col gap-2">
                   <div className="text-sm font-medium">Front Design Preview</div>
                   <DesignPreview
-                    designUrl={getFrontDesignUrl()}
+                    designUrl={frontPreview as any}
                     designType="front"
                     productName={formattedName}
                     className="h-24 w-24 transition-transform duration-300 hover:scale-105"
                   />
                 </div>
-                <FileUpload label="Upload Front Design" orderId={orderId} designType="front" productIndex={index} />
+                <FileUpload label="Upload Front Design" orderId={orderId} designType="front" productIndex={index} setPreview={setFrontPreview} />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
                   <div className="text-sm font-medium">Back Design Preview</div>
                   <DesignPreview
-                    designUrl={getBackDesignUrl()}
+                    designUrl={backPreview as any}
                     designType="back"
                     productName={formattedName}
                     className="h-24 w-24 transition-transform duration-300 hover:scale-105"
                   />
                 </div>
-                <FileUpload label="Upload Back Design" orderId={orderId} designType="back" productIndex={index} />
+                <FileUpload label="Upload Back Design" orderId={orderId} designType="back" productIndex={index} setPreview={setBackPreview} />
               </div>
             </div>
           )}

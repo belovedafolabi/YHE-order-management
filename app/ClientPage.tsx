@@ -26,10 +26,11 @@ export default function ClientPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    const formattedOrderId = orderId.padStart(5, "0") // Format order ID to 5 digits
 
     try {
       // Validate the order ID
-      orderIdSchema.parse(orderId)
+      orderIdSchema.parse(formattedOrderId)
 
       // Show searching state
       setIsSearching(true)
@@ -37,12 +38,11 @@ export default function ClientPage() {
       try {
         // Navigate to the order page directly
         // We'll handle the "not found" case on the order page
-        router.push(`/order/${orderId}`)
+        router.push(`/order/${formattedOrderId}`)
       } catch (err) {
         console.error("Error navigating:", err)
         setError("An error occurred. Please try again.")
         toast({
-          variant: "destructive",
           title: "Error",
           description: "An error occurred while searching for your order",
         })
@@ -53,7 +53,6 @@ export default function ClientPage() {
       if (err instanceof z.ZodError) {
         setError(err.errors[0].message)
         toast({
-          variant: "destructive",
           title: "Invalid Order ID",
           description: err.errors[0].message,
         })

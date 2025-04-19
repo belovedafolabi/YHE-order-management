@@ -11,7 +11,7 @@ export interface Order {
   shippingDetails: string
   salesChannel: string
   date: string
-  phoneNumber?: string
+  phone?: string
   imageLinks?: ImageLink[]
   printStatus?: string
 }
