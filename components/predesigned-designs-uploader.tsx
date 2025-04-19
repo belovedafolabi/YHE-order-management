@@ -175,6 +175,13 @@ export function PredesignedDesignsUploader() {
         description: "Your predesigned t-shirt design has been uploaded",
       })
 
+      // Reload the page on the client after 3 seconds
+      setTimeout(() => {
+        window.location.reload()
+      }, 5000)
+
+      
+
       // Reset form after successful upload
       setTimeout(() => {
         setFile(null)

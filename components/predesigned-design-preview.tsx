@@ -26,6 +26,18 @@ interface PredesignedDesignPreviewProps {
   onOpenChange?: (open: boolean) => void
 }
 
+export const predesignedDesigns = [
+  { id: "class-of-2025", name: "Class of 2025", path: "yhe/predesigned/class-of-2025" },
+  { id: "deserve-an-award", name: "5 years later... I deserve an award", path: "yhe/predesigned/deserve-an-award" },
+  { id: "made-in-abuad", name: "Made in ABUAD, upgraded for the world", path: "yhe/predesigned/made-in-abuad" },
+  { id: "lawyer-in-progress", name: "Lawyer in progress – no objection!", path: "yhe/predesigned/lawyer-in-progress" },
+  { id: "coding-my-way", name: "Coding my way to the future – ABUAD CS", path: "yhe/predesigned/coding-my-way" },
+  { id: "results-dey", name: "Results dey, degrees dey, no wahala!", path: "yhe/predesigned/results-dey" },
+  { id: "no-be-beans", name: "No be beans! Graduate mode activated", path: "yhe/predesigned/no-be-beans" },
+  { id: "vini-vidi-vici", name: "Vini Vidi Vici", path: "yhe/predesigned/vini-vidi-vici" },
+  { id: "plain-white", name: "Plain white t-shirt", path: "yhe/predesigned/plain-white" },
+]
+
 export function PredesignedDesignPreview({
   url,
   designId,

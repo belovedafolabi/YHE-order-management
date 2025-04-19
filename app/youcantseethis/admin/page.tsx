@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
-import { fetchAllOrdersFromDb } from "@/lib/data"
-import { ManagerOrdersTable } from "@/components/manager-order-table"
+import { AdminOrdersTable } from "@/components/admin-orders-table"
+import { getAllOrders } from "@/lib/data"
 
 export const metadata: Metadata = {
   title: "YHE OrderTrack - Admin Dashboard",
@@ -8,12 +8,12 @@ export const metadata: Metadata = {
 }
 
 export default async function AdminPage() {
-  const orders = await fetchAllOrdersFromDb()
+  const orders = await getAllOrders()
 
   return (
     <div className="grid gap-6 md:gap-8 animate-slide-up">
       <h1 className="text-2xl md:text-3xl font-bold tracking-tighter">Order Management</h1>
-      <ManagerOrdersTable orders={orders} />
+      <AdminOrdersTable orders={orders} />
     </div>
   )
 }

@@ -13,7 +13,8 @@ export function AdminNav() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const navItems = [
-    { name: "All Orders", href: "/youcantseethis" },
+    { name: "Manage", href: "/youcantseethis" },
+    { name: "All Orders", href: "/youcantseethis/admin" },
     { name: "Predesigned Designs", href: "/youcantseethis/predesigned-designs" },
   ]
 

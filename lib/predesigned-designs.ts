@@ -23,13 +23,17 @@ export const predesignedDesigns = [
 ]
 
 // Function to get the Cloudinary URL for a given public ID
-export function getCloudinaryUrl(publicId: string): string {
-  if (!publicId) {
-    throw new Error("Public ID is required to generate Cloudinary URL")
+export function getCloudinaryUrl(designId: string): string {
+  if (!designId) {
+    throw new Error("Design ID is required to generate Cloudinary URL")
   }
 
-  const cloudName = "your-cloud-name" // Replace with your Cloudinary cloud name
-  return `https://res.cloudinary.com/${cloudName}/image/upload/${publicId}`
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  if (!cloudName) {
+    throw new Error("Cloudinary cloud name is not defined in environment variables.");
+  }
+  //https://res.cloudinary.com/dnk2iyhtn/image/upload/v1745026126/yhe/predesigned-designs/vini-vidi-vici.png
+  return `https://res.cloudinary.com/${cloudName}/image/upload/${designId}/yhe/predesigned-designs/vini-vidi-vici.png`
 }
 // Function to get design by name or partial match
 export async function getDesignByName(designName: string): Promise<{ id: string; name: string; path: string } | null> {

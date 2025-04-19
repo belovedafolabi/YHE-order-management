@@ -140,7 +140,7 @@ export async function updateImageLink(orderId: string, imageLinks: ImageLink[]):
   }
 }
 
-export async function updatePrintStatus(orderId: string, printStatus: string): Promise<boolean> {
+export async function updatePrintStatus(orderId: string, printStatus: string): Promise<any> {
   try {
     await prisma.order.update({
       where: { orderId },
@@ -156,6 +156,7 @@ export async function updatePrintStatus(orderId: string, printStatus: string): P
     return false;
   }
 }
+
 
 export async function localConvertCsvToDbOrder(csvOrder: Order): Promise<DatabaseOrder> {
   return {

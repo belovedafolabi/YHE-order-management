@@ -32,11 +32,11 @@ import { getDesignByName } from "@/lib/predesigned-designs"
 // Zod schema for search validation
 const searchSchema = z.string().optional()
 
-interface AdminOrdersTableProps {
+interface ManagerOrdersTableProps {
   orders: Order[]
 }
 
-export function AdminOrdersTable({ orders: initialOrders }: AdminOrdersTableProps) {
+export function ManagerOrdersTable({ orders: initialOrders }: ManagerOrdersTableProps) {
   const [orders, setOrders] = useState<Order[]>(initialOrders)
   const [filter, setFilter] = useState<string>("all")
   const [printFilter, setPrintFilter] = useState<string>("all")
@@ -268,7 +268,7 @@ export function AdminOrdersTable({ orders: initialOrders }: AdminOrdersTableProp
         thumbnails.push(
           <DesignPreview
             key={`front-${i}`}
-            designUrl={`/designs/${orderId}-front-${i}.jpg` || "/placeholder.svg" as any}
+            designUrl={`/designs/${orderId}-front-${i}.jpg`}
             designType="front"
             productName={productName}
             className="h-8 w-8 md:h-10 md:w-10 transition-transform duration-300 hover:scale-110"
@@ -281,7 +281,7 @@ export function AdminOrdersTable({ orders: initialOrders }: AdminOrdersTableProp
           thumbnails.push(
             <DesignPreview
               key={`back-${i}`}
-              designUrl={`/designs/${orderId}-back-${i}.jpg` || "/placeholder.svg" as any}
+              designUrl={`/designs/${orderId}-back-${i}.jpg`}
               designType="back"
               productName={productName}
               className="h-8 w-8 md:h-10 md:w-10 transition-transform duration-300 hover:scale-110"
@@ -323,89 +323,91 @@ export function AdminOrdersTable({ orders: initialOrders }: AdminOrdersTableProp
     setSearchQuery("")
   }
 
-  // Mobile card view for orders
-  const renderMobileOrderCard = (order: Order) => {
+// Mobile card view for orders
+const renderMobileOrderCard = (order: Order) => {
     const isExpanded = expandedOrder === order.orderId
 
     return (
-      <Card key={order.orderId} className="mb-4 border-amber-500/20 shadow-sm transition-all duration-300 card-hover">
-        <CardHeader className="p-4 flex flex-row items-center justify-between">
-          <div className="flex flex-col">
-            <CardTitle className="text-base">
-              <Link href={`/order/${order.orderId}`} className="hover:text-amber-500 transition-colors duration-300">
-                #{order.orderId}
-              </Link>
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">{order.customer}</p>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 transition-transform duration-300"
-            onClick={() => toggleOrderExpansion(order.orderId)}
-          >
-            <ChevronRight className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? "rotate-90" : ""}`} />
-          </Button>
-        </CardHeader>
-
-        {isExpanded && (
-          <CardContent className="p-4 pt-0 animate-fade-in">
-            <div className="grid gap-3 text-sm">
-              <div className="grid grid-cols-2 gap-1">
-                <span className="font-medium text-muted-foreground">Product:</span>
-                <span className="truncate">{getProductSummary(order.product)}</span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-1">
-                <span className="font-medium text-muted-foreground">Date:</span>
-                <span>{formatDate(order.date)}</span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-1">
-                <span className="font-medium text-muted-foreground">Total:</span>
-                <span className="font-bold text-amber-500">₦{order.total.toFixed(2)}</span>
-              </div>
-
-{/*               <div className="grid grid-cols-2 gap-1">
-                <span className="font-medium text-muted-foreground">Print Status:</span>
-                <Select
-                  defaultValue={order.orderStatus === "PRINTED" ? "PRINTED" : "NOT_PRINTED"}
-                  onValueChange={(value) => handleStatusChange(order.orderId, value)}
-                  disabled
-                >
-                  <SelectTrigger className="h-7 w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="NOT_PRINTED">Not Printed</SelectItem>
-                    <SelectItem value="PRINTED">Printed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div> */}
-
-              {hasCustomDesigns(order.product) && (
-                <div className="grid grid-cols-1 gap-1">
-                  <span className="font-medium text-muted-foreground">Designs:</span>
-                  {getDesignThumbnails(order.product, order.orderId)}
+        <Card key={order.orderId} className="mb-4 border-amber-500/20 shadow-sm transition-all duration-300 card-hover">
+            <CardHeader className="p-4 flex flex-row items-center justify-between">
+                <div className="flex flex-col">
+                    <CardTitle className="text-base">
+                        <Link href={`/order/${order.orderId}`} className="hover:text-amber-500 transition-colors duration-300">
+                            #{order.orderId}
+                        </Link>
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">{order.customer}</p>
                 </div>
-              )}
-
-              <div className="pt-2">
                 <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full border-amber-500/20 hover:bg-amber-500/10 hover:text-amber-500 transition-all duration-300 button-hover"
-                  asChild
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 transition-transform duration-300"
+                    onClick={() => toggleOrderExpansion(order.orderId)}
                 >
-                  <Link href={`/order/${order.orderId}`}>View Details</Link>
+                    <ChevronRight className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? "rotate-90" : ""}`} />
                 </Button>
-              </div>
-            </div>
-          </CardContent>
-        )}
-      </Card>
+            </CardHeader>
+
+            {isExpanded && (
+                <CardContent className="p-4 pt-0 animate-fade-in">
+                    <div className="grid gap-3 text-sm">
+                        <div className="grid grid-cols-2 gap-1">
+                            <span className="font-medium text-muted-foreground">Product:</span>
+                            <span className="truncate">{getProductSummary(order.product)}</span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-1">
+                            <span className="font-medium text-muted-foreground">Date:</span>
+                            <span>{formatDate(order.date)}</span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-1">
+                            <span className="font-medium text-muted-foreground">Total:</span>
+                            <span className="font-bold text-amber-500">₦{order.total.toFixed(2)}</span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-1">
+                            <span className="font-medium text-muted-foreground">Print Status:</span>
+                            <Select
+                                value={order.printStatus === "PRINTED" ? "PRINTED" : "NOT_PRINTED"}
+                                onValueChange={(value) => handleStatusChange(order.orderId, value)}
+                            >
+                                <SelectTrigger className="h-7 w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="NOT_PRINTED">Not Printed</SelectItem>
+                                    <SelectItem value="PRINTED">Printed</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {hasCustomDesigns(order.product) && (
+                            <div className="grid grid-cols-1 gap-1">
+                                <span className="font-medium text-muted-foreground">Designs:</span>
+                                {getDesignThumbnails(order.product, order.orderId)}
+                            </div>
+                        )}
+
+                        <div className="pt-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full border-amber-500/20 hover:bg-amber-500/10 hover:text-amber-500 transition-all duration-300 button-hover"
+                                asChild
+                            >
+                                <Link href={`/order/${order.orderId}`}>View Details</Link>
+                            </Button>
+                        </div>
+                    </div>
+                </CardContent>
+            )}
+        </Card>
     )
-  }
+}
+
+// Sort orders by ascending order ID
+orders.sort((a, b) => a.orderId.localeCompare(b.orderId))
 
   // Pagination controls
   const renderPagination = () => {
@@ -578,7 +580,9 @@ export function AdminOrdersTable({ orders: initialOrders }: AdminOrdersTableProp
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Order ID</TableHead>
+                  <TableHead>
+                    Order ID
+                  </TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Product</TableHead>
                   <TableHead>Date</TableHead>
@@ -617,9 +621,8 @@ export function AdminOrdersTable({ orders: initialOrders }: AdminOrdersTableProp
                         <TableCell className="text-amber-500 font-medium">₦{order.total.toFixed(2)}</TableCell>
                         <TableCell>
                           <Select
-                            defaultValue={order.orderStatus === "PRINTED" ? "PRINTED" : "NOT_PRINTED"}
+                            value={order.printStatus === "PRINTED" ? "PRINTED" : "NOT_PRINTED"}
                             onValueChange={(value) => handleStatusChange(order.orderId, value)}
-                            disabled
                           >
                             <SelectTrigger className="h-7 w-[130px] transition-all duration-300">
                               <SelectValue />

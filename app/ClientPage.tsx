@@ -26,14 +26,14 @@ export default function ClientPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-    const formattedOrderId = orderId.padStart(5, "0") // Format order ID to 5 digits
+    const formattedOrderId = orderId.padStart(5, "0") // Format order ID to 5 digits      
+    // Show searching state
+    setIsSearching(true)
 
     try {
       // Validate the order ID
       orderIdSchema.parse(formattedOrderId)
 
-      // Show searching state
-      setIsSearching(true)
 
       try {
         // Navigate to the order page directly
@@ -63,56 +63,68 @@ export default function ClientPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
-      <main className="flex-1">
+      <main className="flex-1 flex items-center justify-center">
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 animate-fade-in">
           <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2 animate-slide-up">
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
-                  Track/Manage Your Order
-                </h1>
-                <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-                  Enter your order ID to view details, upload design and track your order.
-                </p>
-              </div>
-              <div className="w-full max-w-sm space-y-2 animate-slide-up" style={{ animationDelay: "0.2s" }}>
-                <form onSubmit={handleSubmit} className="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
-                  <div className="relative flex-1">
-                    <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="text"
-                      name="orderId"
-                      placeholder="Enter Order ID"
-                      className={`w-full pl-8 bg-background border-amber-500/20 focus-visible:ring-amber-500 ${
-                        error ? "border-red-500" : ""
-                      }`}
-                      value={orderId}
-                      onChange={(e) => {
-                        setOrderId(e.target.value)
-                        setError("")
-                      }}
-                      required
-                      disabled={isSearching}
-                    />
-                    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
-                  </div>
-                  <Button
-                    type="submit"
-                    className="bg-amber-500 text-white hover:bg-amber-600 transition-colors duration-300 button-hover"
-                    disabled={isSearching}
-                  >
-                    {isSearching ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Searching...
-                      </>
-                    ) : (
-                      "Track Order"
-                    )}
-                  </Button>
-                </form>
-              </div>
-            </div>
+        <div className="flex flex-col items-center justify-center space-y-4 text-center">
+          <div className="space-y-2 animate-slide-up">
+            <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
+          Track/Manage Your Order
+            </h1>
+            <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+          Enter your order ID to view details, upload design and track your order.
+            </p>
+          </div>
+          <div
+            className="w-full max-w-sm space-y-2 animate-slide-up"
+            style={{ animationDelay: "0.2s" }}
+          >
+            <form
+          onSubmit={handleSubmit}
+          className="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0"
+            >
+          <div className="relative flex-1">
+            <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              name="orderId"
+              placeholder={
+            isSearching
+              ? "Loading..."
+              : "Enter Order ID. eg: 00082 or 82"
+              }
+              className={`w-full pl-8 bg-background border-amber-500/20 focus-visible:ring-amber-500 ${
+            error ? "border-red-500" : ""
+              }`}
+              value={orderId}
+              onChange={(e) => {
+            setOrderId(e.target.value);
+            setError("");
+              }}
+              required
+              disabled={isSearching}
+            />
+            {error && (
+              <p className="text-xs text-red-500 mt-1">{error}</p>
+            )}
+          </div>
+          <Button
+            type="submit"
+            className="bg-amber-500 text-white hover:bg-amber-600 transition-colors duration-300 button-hover"
+            disabled={isSearching}
+          >
+            {isSearching ? (
+              <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Loading...
+              </>
+            ) : (
+              "Track Order"
+            )}
+          </Button>
+            </form>
+          </div>
+        </div>
           </div>
         </section>
       </main>

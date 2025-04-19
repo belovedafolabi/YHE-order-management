@@ -45,10 +45,46 @@ export async function fetchOrdersData(): Promise<Order[]> {
   }
 }
 
+// Function to update the print status of an order
+export async function updatePrintStatus(orderId: string, printStatus: "PRINTED" | "NOT_PRINTED"): Promise<boolean> {
+  try {
+    const orders = await fetchOrdersData()
+    const orderIndex = orders.findIndex(order => String(order.orderId).trim() === String(orderId).trim())
+
+    if (orderIndex === -1) {
+      console.error(`Order with ID ${orderId} not found.`)
+      return false
+    }
+
+    orders[orderIndex].printStatus = printStatus
+
+    // Optionally, you could persist this change to the database here if needed
+    console.log(`Print status for order ${orderId} updated to ${printStatus}.`)
+    return true
+  } catch (error) {
+    console.error("Error updating print status:", error)
+    return false
+  }
+}
 // Function to get all orders
 export async function getAllOrders(): Promise<Order[]> {
   return fetchOrdersData()
 }
+
+// Function to get all orders from the database (Manager view)
+export async function fetchAllOrdersFromDb(): Promise<Order[]> { 
+  
+    try {
+      const dbOrders = await getAllOrdersFromDb()
+      return dbOrders.map(order => ({
+        ...order,
+        salesChannel: order.salesChannel || "website", // Ensure salesChannel is always a string
+      }))
+    } catch (error) {
+      console.error("Error getting all orders from DB:", error)
+      return []
+    }
+  }
 
 // Function to get a specific order by ID
 export async function getOrderById(orderId: string): Promise<Order | null> {
