@@ -6,6 +6,7 @@ import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { smoothScrollTo } from "@/lib/smooth-scroll"
 
 interface SiteHeaderProps {
   title?: string
@@ -40,13 +41,29 @@ export function SiteHeader({ title }: SiteHeaderProps) {
               {isMenuOpen && (
                 <div className="absolute right-0 top-10 z-50 w-48 rounded-md border border-border bg-background shadow-lg animate-fade-in">
                   <nav className="flex flex-col p-2">
-                    <Link
-                      href="/youcantseethis"
-                      className="px-3 py-2 text-sm rounded-md transition-colors hover:bg-muted hover:text-amber-500"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Admin Dashboard
-                    </Link>
+                  <Link
+                    href="#design-models"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      smoothScrollTo("#design-models")
+                      setIsMenuOpen(false)
+                    }}
+                    className="px-3 py-2 text-sm rounded-md transition-colors hover:bg-muted hover:text-amber-500"
+                  >
+                    Design Models
+                  </Link>
+
+                  <Link
+                    href="#faqs"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      smoothScrollTo("#faqs")
+                      setIsMenuOpen(false)
+                    }}
+                    className="px-3 py-2 text-sm rounded-md transition-colors hover:bg-muted hover:text-amber-500"
+                  >
+                    FAQs
+                  </Link>
                     {title && (
                       <div className="px-3 py-2 text-sm text-muted-foreground border-t border-border/40 mt-1 pt-1">
                         {title}
@@ -59,12 +76,31 @@ export function SiteHeader({ title }: SiteHeaderProps) {
           )}
 
           {!isMobile && (
-            <Link
-              href="/youcantseethis"
-              className="text-sm text-muted-foreground hover:text-amber-500 transition-colors mr-2"
-            >
-              Admin Dashboard
-            </Link>
+            <>
+              <Link
+                href="#design-models"
+                onClick={(e) => {
+                  e.preventDefault()
+                  smoothScrollTo("#design-models")
+                  setIsMenuOpen(false)
+                }}
+                className="px-3 py-2 text-sm rounded-md transition-colors hover:bg-muted hover:text-amber-500"
+              >
+                Design Models
+              </Link>
+
+              <Link
+                href="#faqs"
+                onClick={(e) => {
+                  e.preventDefault()
+                  smoothScrollTo("#faqs")
+                  setIsMenuOpen(false)
+                }}
+                className="px-3 py-2 text-sm rounded-md transition-colors hover:bg-muted hover:text-amber-500"
+              >
+                FAQs
+              </Link>
+            </>
           )}
 
           <ThemeToggle />

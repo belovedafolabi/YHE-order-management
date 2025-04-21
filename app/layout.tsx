@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     "order details",
     "customer orders",
   ],
-  authors: [{ name: "YHE OrderTrack", url: "https://yheordertrack.com" }],
+  authors: [{ name: "YHE OrderTrack", url: "https://yheorder.vercel.app" }],
   creator: "YHE OrderTrack",
   publisher: "YHE OrderTrack",
   applicationName: "YHE OrderTrack - Order Management System",
@@ -39,8 +39,8 @@ export const metadata: Metadata = {
     description:
       "Track and manage your orders with ease. Upload designs, check order status, and get real-time updates on your purchases.",
     type: "website",
-    url: "https://yheordertrack.com",
-    images: ["/images/yhe-ordertrack-og.png"],
+    url: "https://yheorder.vercel.app",
+    images: ["/images/yhe-OG.png"],
   },
   twitter: {
     card: "summary_large_image",
@@ -48,9 +48,9 @@ export const metadata: Metadata = {
     title: "YHE OrderTrack - Order Management System",
     description:
       "Track and manage your orders with ease. Upload designs, check order status, and get real-time updates on your purchases.",
-    images: ["/images/yhe-ordertrack-og.png"],
+    images: ["/images/yhe-OG.png"],
   },
-  generator: "yheordertrack.com",
+  generator: "yheorder.vercel.app",
 }
 
 export default function RootLayout({

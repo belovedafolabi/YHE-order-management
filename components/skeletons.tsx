@@ -87,3 +87,25 @@ export function AdminTableSkeleton() {
     </Card>
   )
 }
+
+/**
+ * A skeleton placeholder for the ModelCarousel component
+ * Shows a pulsing rectangle with prev/next button placeholders
+ */
+export function ModelCarouselSkeleton() {
+  return (
+    <Card className="border-amber-500/20 shadow-md">
+      <CardContent className="p-0 relative overflow-hidden">
+        {/* Canvas placeholder: 16:9 aspect ratio */}
+        <div className="w-full aspect-video bg-muted/20 animate-pulse" />
+        {/* Prev/Next button placeholders */}
+        <div className="absolute left-4 top-1/2 -translate-y-1/2">
+          <Skeleton className="h-10 w-10 rounded-full" />
+        </div>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+          <Skeleton className="h-10 w-10 rounded-full" />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}

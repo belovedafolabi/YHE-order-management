@@ -2,7 +2,8 @@ import type { Order } from "./types"
 import { getAllOrdersFromDb, getOrderByIdFromDb, saveOrderToDatabase, localConvertCsvToDbOrder } from "./db-service"
 import Papa from "papaparse";
 
-const CSV_URL = "https://bfa-portfolio.vercel.app/docs/order.csv"
+const CSV_URL = "https://bfa-portfolio.vercel.app/docs/bumpa/orders.csv"
+// const CSV_URL = "https://bfa-portfolio.vercel.app/docs/order.csv" // For 100 Orders - No Guns
 //const CSV_URL = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/orders-sVkG73FndiUbAhEkmL8oHn86k9FeBE.csv"
 
 // Utility function to convert a string to camelCase

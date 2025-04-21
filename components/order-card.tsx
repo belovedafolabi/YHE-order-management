@@ -5,7 +5,7 @@ import { ProductCard } from "@/components/product-card"
 import { PhoneNumberInput } from "@/components/phone-number-input"
 import type { Order } from "@/lib/types"
 import { format, isValid, parseISO } from "date-fns"
-import { splitProducts } from "@/lib/utils"
+import { parseProductInfo, splitProducts } from "@/lib/utils"
 import { OrderCardSkeleton } from "@/components/skeletons"
 
 interface OrderCardProps {
@@ -94,33 +94,36 @@ export function OrderCard({ order }: OrderCardProps) {
           <div className="grid gap-2">
             <PhoneNumberInput orderId={order.orderId} initialPhoneNumber={order.phone} />
           </div>
-          <div className="grid gap-2">
-            <div className="text-sm font-medium text-muted-foreground">Status</div>
-            <div className="flex flex-wrap gap-2">
-              
-              <span className="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500 transition-all duration-300 hover:bg-amber-500/20">
+            {order.phone && (
+            <div className="animate-fade-in">
+              <div className="grid gap-2">
+              <div className="text-sm font-medium text-muted-foreground">Status</div>
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500 transition-all duration-300 hover:bg-amber-500/20">
                 Shipping: {order.shippingStatus || "PENDING"}
-              </span>
-              <span className="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500 transition-all duration-300 hover:bg-amber-500/20">
-                Print Status: {order.orderStatus === "PRINTED" ? "Printed" : "Not Printed"}
-              </span>
-              {/* <span className="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500 transition-all duration-300 hover:bg-amber-500/20">
+                </span>
+                <span className="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500 transition-all duration-300 hover:bg-amber-500/20">
+                  Print Status: {order.orderStatus == "PRINTED" ? "Printed" : "Not Printed"}
+                </span>
+                {/* <span className="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500 transition-all duration-300 hover:bg-amber-500/20">
                 Payment: {order.paymentStatus || "PENDING"}
-              </span> */}
-            </div>
-          </div>
-          <div className="grid gap-4">
-            <div className="text-sm font-medium text-muted-foreground">Products</div>
-            {products.length > 0 ? (
-              <div className="grid gap-4">
-                {products.map((product, index) => (
-                  <ProductCard key={index} product={product} orderId={order.orderId} index={index} />
-                ))}
+                </span> */}
               </div>
-            ) : (
-              <ProductCard product={order.product} orderId={order.orderId} />
+              </div>
+              <div className="grid gap-4 mt-4">
+              <div className="text-xl font-medium text-muted-foreground">Products ({products.length})</div>
+              {products.length > 0 ? (
+                <div className="grid gap-4">
+                {products.map((product, index) => (
+                  <ProductCard key={index} customDesigns={order.customDesigns} product={product} orderId={order.orderId} index={index} />
+                ))}
+                </div>
+              ) : (
+                <ProductCard product={order.product} customDesigns={order.customDesigns} orderId={order.orderId} />
+              )}
+              </div>
+            </div>
             )}
-          </div>
           <div className="flex items-center justify-between border-t border-border pt-4 mt-2">
             <div className="text-sm font-medium text-muted-foreground">Total</div>
             <div className="text-xl font-bold text-amber-500">₦{order.total.toFixed(2)}</div>

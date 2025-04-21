@@ -23,6 +23,14 @@ export interface ProductInfo {
   predesignedId?: string
 }
 
+export interface DesignDetails {
+  designId: string
+  designType: "front" | "back" | "predesigned"
+  url: string
+  filename: string
+  createdAt?: string
+}
+
 export interface DatabaseOrder {
   orderId: string
   customerName: string

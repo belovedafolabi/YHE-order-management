@@ -14,7 +14,7 @@ export function AdminNav() {
 
   const navItems = [
     { name: "Manage", href: "/youcantseethis" },
-    { name: "All Orders", href: "/youcantseethis/admin" },
+    // { name: "All Orders", href: "/youcantseethis/admin" },
     { name: "Predesigned Designs", href: "/youcantseethis/predesigned-designs" },
   ]
 

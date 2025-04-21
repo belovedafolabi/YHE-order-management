@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { OrderCard } from "@/components/order-card"
 import { getOrderById } from "@/lib/data"
 import { SiteHeader } from "@/components/site-header"
+import { parseProductInfo } from "@/lib/utils"
+import { Footer } from "@/components/footer"
 
 export const metadata: Metadata = {
   title: "YHE OrderTrack - Order Details",
@@ -24,6 +26,8 @@ export default async function OrderPage({
   console.log(`Looking for order ID: ${orderId}`)
 
   const order = await getOrderById(orderId)
+  console.log(`Order data: ${JSON.stringify(order)}`)
+  console.log(order)
 
   // Debug log to see if we found the order
   console.log(`Order found: ${order ? "Yes" : "No"}`)
@@ -51,13 +55,7 @@ export default async function OrderPage({
           </div>
         </div>
       </main>
-      <footer className="w-full border-t border-border/40 bg-background py-4 md:py-6">
-        <div className="container flex flex-col items-center justify-center gap-2 md:gap-4 text-center px-4 md:flex-row md:gap-8 md:text-left">
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} YHE OrderTrack. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
 )
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Download, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -13,11 +13,9 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer"
 import { cn } from "@/lib/utils"
-import { getCloudinaryUrl } from "@/lib/predesigned-designs"
 import { useToast } from "@/hooks/use-toast"
 
 interface PredesignedDesignPreviewProps {
-  url: string
   designId: string
   designName: string
   className?: string
@@ -26,20 +24,7 @@ interface PredesignedDesignPreviewProps {
   onOpenChange?: (open: boolean) => void
 }
 
-export const predesignedDesigns = [
-  { id: "class-of-2025", name: "Class of 2025", path: "yhe/predesigned/class-of-2025" },
-  { id: "deserve-an-award", name: "5 years later... I deserve an award", path: "yhe/predesigned/deserve-an-award" },
-  { id: "made-in-abuad", name: "Made in ABUAD, upgraded for the world", path: "yhe/predesigned/made-in-abuad" },
-  { id: "lawyer-in-progress", name: "Lawyer in progress – no objection!", path: "yhe/predesigned/lawyer-in-progress" },
-  { id: "coding-my-way", name: "Coding my way to the future – ABUAD CS", path: "yhe/predesigned/coding-my-way" },
-  { id: "results-dey", name: "Results dey, degrees dey, no wahala!", path: "yhe/predesigned/results-dey" },
-  { id: "no-be-beans", name: "No be beans! Graduate mode activated", path: "yhe/predesigned/no-be-beans" },
-  { id: "vini-vidi-vici", name: "Vini Vidi Vici", path: "yhe/predesigned/vini-vidi-vici" },
-  { id: "plain-white", name: "Plain white t-shirt", path: "yhe/predesigned/plain-white" },
-]
-
 export function PredesignedDesignPreview({
-  url,
   designId,
   designName,
   className,
@@ -48,9 +33,9 @@ export function PredesignedDesignPreview({
   onOpenChange,
 }: PredesignedDesignPreviewProps) {
   const [open, setOpen] = useState(false)
+  const [url, setUrl] = useState("/placeholder.svg")
   const { toast } = useToast()
 
-  // Handle controlled/uncontrolled state
   useEffect(() => {
     if (controlledOpen !== undefined) {
       setOpen(controlledOpen)
@@ -62,11 +47,27 @@ export function PredesignedDesignPreview({
     onOpenChange?.(newOpen)
   }
 
-  // Get the image URL from the design ID
-  // const imageUrl = getCloudinaryUrl(`yhe/predesigned/${designId}`)
+  // Fetch image URL from backend API
+  useEffect(() => {
+    const fetchDesignUrl = async () => {
+      try {
+        const res = await fetch("/api/get-predesigned-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ designName }),
+        })
+        const data = await res.json()
+        setUrl(data.url || "/placeholder.svg")
+      } catch (err) {
+        console.error("Failed to fetch design URL:", err)
+        setUrl("/placeholder.svg")
+      }
+    }
 
-  const handleDownload = () => {
-    // Create an anchor element and set properties for download
+    fetchDesignUrl()
+  }, [designName])
+
+/*   const handleDownload = () => {
     const link = document.createElement("a")
     link.href = url
     link.download = `${designId}-${Date.now()}.jpg`
@@ -78,7 +79,35 @@ export function PredesignedDesignPreview({
       title: "Download started",
       description: `Downloading ${designName}`,
     })
+  } */
+
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(url)
+      const blob = await response.blob()
+      const objectUrl = URL.createObjectURL(blob)
+  
+      const link = document.createElement("a")
+      link.href = objectUrl
+      link.download = `${designId}-${Date.now()}.jpg`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(objectUrl)
+  
+      toast({
+        title: "Download started",
+        description: `Downloading ${designName}`,
+      })
+    } catch (error) {
+      toast({
+        title: "Download failed",
+        description: "Something went wrong while downloading.",
+        variant: "destructive",
+      })
+    }
   }
+    
 
   return (
     <>
@@ -96,6 +125,10 @@ export function PredesignedDesignPreview({
             alt={`${designName} design`}
             className="h-full w-full object-cover aspect-square"
             loading="lazy"
+            onError={(e) => {
+              ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=128&width=128&text=No+Image+Available"
+              ;(e.target as HTMLImageElement).alt = "No image available"
+            }}
           />
           <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity duration-300">
             <span className="text-xs font-medium text-white px-2 py-1 rounded-md bg-black/60 backdrop-blur-sm">
@@ -117,6 +150,11 @@ export function PredesignedDesignPreview({
                 src={url}
                 alt={`${designName} design`}
                 className="max-h-[60vh] max-w-full object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/placeholder.svg?height=128&width=128&text=No+Image+Available"
+                  ;(e.target as HTMLImageElement).alt = "No image available"
+                }}
+                loading="lazy"
               />
             </div>
           </div>

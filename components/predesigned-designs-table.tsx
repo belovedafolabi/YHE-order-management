@@ -97,10 +97,10 @@ async function handleDownload(url: string, filename?: string) {
 }
 
 
-  const handlePreview = (url: string, designName: string, designId: string) => {
-    setPreview({ url: url, designName, designId })
-    setIsPreviewOpen(true)
-  }
+const handlePreview = (url: string, designName: string, designId: string) => {
+  setPreview({ url: url, designName, designId })
+  setIsPreviewOpen(true)
+}
 
   return (
     <Card className="border-amber-500/20 shadow-md transition-all duration-300">
@@ -149,6 +149,10 @@ async function handleDownload(url: string, filename?: string) {
                         alt={design.name}
                         className="h-24 w-24 object-cover rounded-md cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() => handlePreview(design.url, design.name, design.designId)}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "/placeholder.svg?height=128&width=128&text=No+Image+Available" as string
+                          (e.target as HTMLImageElement).alt = "No image available"
+                        }}
                       />
                     </TableCell>
                     <TableCell>{design.name}</TableCell>

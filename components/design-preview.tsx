@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast"
 
 interface DesignPreviewProps {
   designUrl: string
-  designType: "front" | "back"
+  designType: "front" | "back" | "front-only" | "back-only"
   productName?: string
   className?: string
   showDownload?: boolean
@@ -38,7 +38,7 @@ export function DesignPreview({
   //   ? designUrl
   //   : `/placeholder.svg?height=400&width=400&text=${designType === "front" ? "Front" : "Back"}+Design`
 
-  const handleDownload = () => {
+/*   const handleDownload = () => {
     // Create an anchor element and set properties for download
     const link = document.createElement("a")
     link.href = designUrl
@@ -51,7 +51,42 @@ export function DesignPreview({
       title: "Download started",
       description: `Downloading ${designType} design`,
     })
+  } */
+
+  const handleDownload = async () => {
+    try {
+      // Fetch the image as a blob
+      const response = await fetch(designUrl, { mode: 'cors' })
+      if (!response.ok) throw new Error("Failed to fetch image")
+  
+      const blob = await response.blob()
+      const blobUrl = URL.createObjectURL(blob)
+  
+      // Create and trigger download link
+      const link = document.createElement("a")
+      link.href = blobUrl
+      link.download = `${designType}-design-${Date.now()}.jpg`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+  
+      // Clean up blob URL
+      URL.revokeObjectURL(blobUrl)
+  
+      toast({
+        title: "Download started",
+        description: `Downloading ${designType} design`,
+      })
+    } catch (error) {
+      console.error("Download error:", error)
+      toast({
+        title: "Download failed",
+        description: "There was a problem downloading the file.",
+        variant: "destructive",
+      })
+    }
   }
+    
 
   return (
     <>
@@ -68,10 +103,14 @@ export function DesignPreview({
           alt={`${designType} design`}
           className="h-full w-full object-cover aspect-square"
           loading="lazy"
+          onError={(e) => {
+          (e.target as HTMLImageElement).src = "/placeholder.svg?height=128&width=128&text=No+Image+Available";
+          (e.target as HTMLImageElement).alt = "No image available";
+          }}
         />
         <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity duration-300">
           <span className="text-xs font-medium text-white px-2 py-1 rounded-md bg-black/60 backdrop-blur-sm">
-            View {designType} design
+        View {designType} design
           </span>
         </div>
       </button>
@@ -91,6 +130,10 @@ export function DesignPreview({
                 src={designUrl || "/placeholder.svg"}
                 alt={`${designType} design`}
                 className="max-h-[60vh] max-w-full object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/placeholder.svg?height=128&width=128&text=No+Image+Available";
+                  (e.target as HTMLImageElement).alt = "No image available";
+                }}
               />
             </div>
           </div>

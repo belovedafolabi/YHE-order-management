@@ -1,3 +1,4 @@
+import { Footer } from "@/components/footer"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
 
@@ -20,13 +21,7 @@ export default function OrderLoading() {
           </div>
         </div>
       </main>
-      <footer className="w-full border-t border-border/40 bg-background py-6">
-        <div className="container flex flex-col items-center justify-center gap-4 text-center md:flex-row md:gap-8 md:text-left">
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} YHE OrderTrack. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

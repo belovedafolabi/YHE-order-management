@@ -1,11 +1,20 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
-import type { ProductInfo } from "./types"
+import type { ProductInfo, DesignDetails } from "./types"
 import { getDesignByName } from "./predesigned-designs"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
+
+// List of supported gun products
+const GUN_NAMES = [
+  "Water Shooting Play Gun Set",
+  "AquaStrike Elite Veteran",
+  "AquaStrike Elite Pro",
+  "AquaStrike Elite Novice",
+  "Play Gun Set Pistol",
+]
 
 // Format product name for display
 export function formatProductName(productName: string): string {
@@ -33,198 +42,130 @@ export function formatProductName(productName: string): string {
   return productName
 }
 
+// Escape regex special characters
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
+/**
+ * Split a product string into individual entries by detecting each segment start (t-shirt or gun)
+ */
+export function splitProducts(productString: string): string[] {
+  if (!productString) return []
+
+  const starters = ["Designed & Custom White T-Shirt", ...GUN_NAMES]
+  const escaped = starters.map(escapeRegex).join("|")
+  const re = new RegExp(`(${escaped})([\\s\\S]*?)(?=(?:${escaped})|$)`, 'g')
+
+  const entries = Array.from(
+    productString.matchAll(re),
+    m => m[0].trim().replace(/,$/, "")
+  )
+
+  return entries
+}
+
+/**
+ * Parse a single product entry into structured info.
+ */
 export function parseProductInfo(productString: string): ProductInfo {
-  const productInfo: ProductInfo = {
-    name: productString.trim(),
+  const productInfo: ProductInfo = { name: productString.trim() }
+  const lower = productString.toLowerCase()
+
+  // 1. Gun products
+  for (const gun of GUN_NAMES) {
+    if (lower.includes(gun.toLowerCase())) {
+      productInfo.name = gun
+      const sizeMatch = productString.match(new RegExp(`${escapeRegex(gun)}.*?size:\s*([^,]+)`, 'i'))
+      if (sizeMatch) productInfo.size = sizeMatch[1].trim().toUpperCase()
+      return productInfo
+    }
   }
 
-  // Check if this is a t-shirt with size in the format "S-..." or "M-..."
-  const sizeDesignMatch = productString.match(/^([SMLX]+)-(.+)$/)
+  // 2. T-shirt prefix format
+  const sizeDesignMatch = productString.match(/^([SMLX]+)-(.+)$/i)
   if (sizeDesignMatch && productString.includes("Designed & Custom White T-Shirt")) {
-    const size = sizeDesignMatch[1]
-    const design = sizeDesignMatch[2]
-
     productInfo.name = "Designed & Custom White T-Shirt"
-    productInfo.size = size
-    productInfo.design = design
+    productInfo.size = sizeDesignMatch[1].toUpperCase()
+    productInfo.design = sizeDesignMatch[2].trim()
     return productInfo
   }
 
-  // Extract size from "size: X" format
+  // 3. Extract size
   const sizeMatch = productString.match(/size:\s*([^,]+)/i)
   if (sizeMatch) {
     productInfo.size = sizeMatch[1].trim()
-    // Remove the size part from the name if it's in the name
     if (productString.includes(", size:")) {
       productInfo.name = productString.split(", size:")[0].trim()
     }
   }
 
-  // Extract design for t-shirts
+  // 4. Extract design for t-shirts
   const designMatch = productString.match(/design:\s*([^,]+)/i)
   if (designMatch) {
-    // Get everything after "design: " until the end or until "(after order placement"
     let design = designMatch[1].trim()
     if (design.includes("(after order placement")) {
       design = design.split("(after order placement")[0].trim()
     }
     productInfo.design = design
-
-    // Check if this is a predesigned design
-    const predesignedDesign = getDesignByName(design)
-    if (predesignedDesign) {
-      productInfo.predesignedId = predesignedDesign.id
-    }
+    const predesigned = getDesignByName(design)
+    if (predesigned) productInfo.predesignedId = predesigned.id
   }
 
   return productInfo
 }
 
-// Improved function to split multiple products in a single string
-export function splitProducts(productString: string): string[] {
-  if (!productString) return []
-
-  // Handle the case where products are already in the format "S-Plain White T Shirt"
-  if (productString.match(/^[SMLX]+-.+$/)) {
-    return [productString]
-  }
-
-  // First, try to split by "Designed & Custom White T-Shirt" occurrences after the first one
-  const tshirtMatches = productString.match(/Designed & Custom White T-Shirt/g)
-  if (tshirtMatches && tshirtMatches.length > 1) {
-    const products: string[] = []
-    const remainingString = productString
-    let startIndex = 0
-
-    // Find the first occurrence
-    const firstIndex = remainingString.indexOf("Designed & Custom White T-Shirt")
-    if (firstIndex >= 0) {
-      startIndex = firstIndex
-
-      // Find each subsequent occurrence and split
-      while (true) {
-        const nextIndex = remainingString.indexOf("Designed & Custom White T-Shirt", startIndex + 1)
-        if (nextIndex === -1) break
-
-        // Add the product up to the next occurrence
-        products.push(remainingString.substring(startIndex, nextIndex).trim())
-
-        // Update the remaining string and start index
-        startIndex = nextIndex
-      }
-
-      // Add the last product
-      products.push(remainingString.substring(startIndex).trim())
-
-      return products
-    }
-  }
-
-  // Try to identify products by looking for patterns like "size: X" followed by another "size: Y"
-  const sizeMatches = productString.match(/size:\s*[^,]+/gi)
-  if (sizeMatches && sizeMatches.length > 1) {
-    const products: string[] = []
-    let currentProduct = ""
-    let inDesignSection = false
-
-    // Split by commas, but be careful with design sections that contain commas
-    const parts = productString.split(",")
-
-    for (let i = 0; i < parts.length; i++) {
-      const part = parts[i].trim()
-
-      // If this part contains "size:" and it's not the first part and we're not in a design section
-      if (part.includes("size:") && i > 0 && !inDesignSection && currentProduct) {
-        // This is the start of a new product
-        products.push(currentProduct.trim())
-        currentProduct = part
-      }
-      // If this part contains "design:", we're in a design section
-      else if (part.includes("design:")) {
-        inDesignSection = true
-        currentProduct += ", " + part
-      }
-      // If we're in a design section and this part contains "requested)", end of design section
-      else if (inDesignSection && part.includes("requested)")) {
-        inDesignSection = false
-        currentProduct += ", " + part
-      }
-      // Otherwise, just append to current product
-      else {
-        if (currentProduct) {
-          currentProduct += ", " + part
-        } else {
-          currentProduct = part
-        }
-      }
-    }
-
-    // Add the last product if there is one
-    if (currentProduct) {
-      products.push(currentProduct.trim())
-    }
-
-    // Clean up products - remove any that are just empty or whitespace
-    return products.filter((p) => p.trim().length > 0)
-  }
-
-  // If we couldn't split, return the original as a single product
-  return [productString]
-}
-
-// Function to determine t-shirt type
+/**
+ * Determine t-shirt type based on parsed ProductInfo
+ */
 export function getTShirtType(
   productInfo: ProductInfo,
-): "plain" | "pre-designed" | "custom-front" | "custom-front-back" | null {
-  if (!productInfo.name.includes("Designed & Custom White T-Shirt")) {
-    return null
-  }
+): "plain" | "pre-designed" | "custom-front" | "custom-back" | "custom-front-back" | null {
+  if (!productInfo.name.includes("Designed & Custom White T-Shirt")) return null
+  if (!productInfo.design) return "plain"
 
-  if (!productInfo.design) {
-    return "plain"
-  }
-
-  // Check for plain white t-shirt
-  if (productInfo.design.toLowerCase().includes("plain white t shirt")) {
-    return "plain"
-  }
-
-  // Check for front custom design
-  if (productInfo.design.toLowerCase().includes("front custom design")) {
-    return "custom-front"
-  }
-
-  // Check for front & back custom design (various formats)
-  // This is the key fix for the data issue where "&" is replaced with ","
   const design = productInfo.design.toLowerCase()
-  if (
-    design.includes("front , back custom design") ||
-    design.includes("front ,back custom design") ||
-    design.includes("front, back custom design") ||
-    design.includes("front,back custom design") ||
-    design.includes("front and back custom design") ||
-    design.includes("front back custom design") ||
-    design.includes("front & back custom design") ||
-    // Additional patterns to catch more variations
-    design.match(/front\s*[,&]\s*back\s*custom\s*design/) !== null ||
-    design.includes("front and back") ||
-    (design.includes("front") && design.includes("back"))
-  ) {
-    return "custom-front-back"
-  }
+  if (design.includes("plain white t shirt")) return "plain"
+  if (design.includes("t shirt front custom design")) return "custom-front"
+  if (design.includes("t shirt back custom design")) return "custom-back"
+  if (design.includes("front") && design.includes("back")) return "custom-front-back"
+  if (productInfo.predesignedId || getDesignByName(productInfo.design)) return "pre-designed"
 
-  // Check if this is a predesigned design
-  if (productInfo.predesignedId || getDesignByName(productInfo.design)) {
-    return "pre-designed"
-  }
-
-  // If it's a t-shirt but not plain or custom, it must be pre-designed
   return "pre-designed"
 }
 
-// Function to check if a product is a gun
+/**
+ * Check if a product is a gun
+ */
 export function isGunProduct(productName: string): boolean {
-  return (
-    productName.includes("AquaStrike") || productName.includes("Play Gun Set") || productName.includes("Water Shooting")
-  )
+  return GUN_NAMES.some(gun => productName.includes(gun))
+}
+
+export function extractDesignDetailsFromUrl(url: string): DesignDetails | null {
+  try {
+    const parsedUrl = new URL(url);
+    const pathSegments = parsedUrl.pathname.split("/");
+
+    // Example folder: 'customs-designs-front'
+    const folderName = pathSegments.find((segment) =>
+      segment.startsWith("customs-designs-")
+    );
+
+    // Extract type from folder name
+    const type = folderName?.split("customs-designs-")[1];
+
+    // Get the filename (e.g., 00001-1.png)
+    const filename = pathSegments[pathSegments.length - 1];
+
+    // Extract item number from filename: e.g., 00001-1.png → itemNumber = 1
+    const match = filename.match(/-(\d+)\./);
+    const itemNumber = match ? parseInt(match[1], 10) : NaN;
+
+    if (!type || isNaN(itemNumber)) return null;
+
+    return { type, itemNumber };
+  } catch (error) {
+    console.error("Invalid URL or format:", error);
+    return null;
+  }
 }

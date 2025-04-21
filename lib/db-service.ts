@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import prisma from "./prisma";
 import { convertCsvToDbOrder as importedConvertCsvToDbOrder, localConvertDbToAppOrder as importedLocalConvertDbToAppOrder } from "./order-utils";
 import type { DatabaseOrder, ImageLink } from "./types";
+import { parse } from "path";
+import { parseProductInfo, splitProducts } from "./utils";
 
 export type Order = {
   orderId: string;
@@ -39,7 +41,7 @@ export async function checkOrderInDatabase(orderId: string): Promise<DatabaseOrd
       payStatus: order.payStatus,
       shipStatus: order.shipStatus,
       shipDetail: order.shipDetail || "",
-      date: order.date,
+      date: order.date instanceof Date ? order.date.toISOString() : order.date,
       printStatus: order.printStatus,
       imageLink: order.imageLink ?? undefined,
     };
@@ -49,20 +51,171 @@ export async function checkOrderInDatabase(orderId: string): Promise<DatabaseOrd
   }
 }
 
+// export async function saveOrderToDatabase(order: DatabaseOrder): Promise<boolean> {
+//   try {
+//     // Format the Order ID to a 5-digit padded string
+//     const formattedOrderId = order.orderId.padStart(5, "0");
+
+//     // Validate and parse the date
+//     let isoDate: string;
+//     if (order.date && !isNaN(Date.parse(order.date))) {
+//       isoDate = new Date(order.date).toISOString(); // Convert valid date to ISO-8601
+//     } else {
+//       console.warn(`Invalid date value: "${order.date}". Using current date as fallback.`);
+//       isoDate = new Date().toISOString(); // Fallback to the current date
+//     }
+
+//     let products = splitProducts(order.product); // Ensure product info is valid
+//     let parsedProducts = products.forEach(async(product) => {
+//       let parsed = parseProductInfo(product); 
+//       let predesigned = await prisma.predesignedDesign.findFirst({
+//         where: { designId: parsed.design },
+//       });
+//       console.log(predesigned)
+//       return {
+//         predesigned: predesigned?.id || null,
+//       }
+//     })
+//     console.log("Parsed products:", parsedProducts);
+//     // let newProd = products.map(async(product) => {
+//     //   let parsed = parseProductInfo(product); 
+//     //   let predesignId = await prisma.predesignedDesign.findFirst({
+//     //     where: { designId: parsed.design },
+//     //   });
+//     //   console.log(predesignId)
+//     //   return {
+//     //     name: parsed.name,
+//     //     design: parsed.design,
+//     //     predesignId: predesignId?.id || null,
+//     //     orderId: formattedOrderId,
+//     //     size: parsed.size,
+//     //   }
+//     // })
+//     // console.log("Parsed products:", newProd);
+//     // await prisma.order.upsert({
+//     //   where: { orderId: formattedOrderId },
+//     //   update: {
+//     //     customerName: order.customerName,
+//     //     phone: order.phone || undefined,
+//     //     product: order.product,
+//     //     total: order.total,
+//     //     orderStatus: order.orderStatus,
+//     //     payStatus: order.payStatus,
+//     //     shipStatus: order.shipStatus,
+//     //     shipDetail: order.shipDetail || "",
+//     //     date: isoDate, // Use the validated ISO-8601 date
+//     //     printStatus: order.printStatus,
+//     //     imageLink: order.imageLink || undefined,
+//     //   },
+//     //   create: {
+//     //     orderId: formattedOrderId,
+//     //     customerName: order.customerName,
+//     //     phone: order.phone || undefined,
+//     //     product: order.product,
+//     //     total: order.total,
+//     //     orderStatus: order.orderStatus,
+//     //     payStatus: order.payStatus,
+//     //     shipStatus: order.shipStatus,
+//     //     shipDetail: order.shipDetail || "",
+//     //     date: isoDate, // Use the validated ISO-8601 date
+//     //     printStatus: order.printStatus,
+//     //     imageLink: order.imageLink || undefined,
+//     //   },
+//     // });
+
+//     return true;
+//   } catch (error) {
+//     console.error("Error saving order to database:", error);
+//     return false;
+//   }
+// }
+
+// export async function saveOrderToDatabase(order: DatabaseOrder): Promise<boolean> {
+//   try {
+//     const formattedOrderId = order.orderId.padStart(5, "0");
+
+//     // Ensure valid ISO date
+//     const isoDate = order.date && !isNaN(Date.parse(order.date))
+//       ? new Date(order.date).toISOString()
+//       : new Date().toISOString();
+
+//     // Save the order (upsert)
+//     await prisma.order.upsert({
+//       where: { orderId: formattedOrderId },
+//       update: {
+//         customerName: order.customerName,
+//         phone: order.phone || undefined,
+//         product: order.product,
+//         total: order.total,
+//         orderStatus: order.orderStatus,
+//         payStatus: order.payStatus,
+//         shipStatus: order.shipStatus,
+//         shipDetail: order.shipDetail || "",
+//         date: isoDate,
+//         printStatus: order.printStatus,
+//         imageLink: order.imageLink || undefined,
+//       },
+//       create: {
+//         orderId: formattedOrderId,
+//         customerName: order.customerName,
+//         phone: order.phone || undefined,
+//         product: order.product,
+//         total: order.total,
+//         orderStatus: order.orderStatus,
+//         payStatus: order.payStatus,
+//         shipStatus: order.shipStatus,
+//         shipDetail: order.shipDetail || "",
+//         date: isoDate,
+//         printStatus: order.printStatus,
+//         imageLink: order.imageLink || undefined,
+//       },
+//     });
+
+//     // Split and parse product strings
+//     const products = splitProducts(order.product);
+
+//     // Create product entries
+//     const parsedProducts = await Promise.all(products.map(async (productString) => {
+//       const parsed = parseProductInfo(productString);
+
+//       const predesigned = await prisma.predesignedDesign.findFirst({
+//         where: { designId: parsed.design },
+//       });
+
+//       return {
+//         name: parsed.name,
+//         design: parsed.design,
+//         size: parsed.size,
+//         predesignId: predesigned?.id || "",
+//         orderId: formattedOrderId,
+//       };
+//     }));
+
+//     console.log("Parsed products:", parsedProducts);
+
+//     // Bulk create products
+//     await prisma.product.createMany({
+//       data: parsedProducts,
+//       skipDuplicates: true,
+//     });
+
+//     return true;
+
+//   } catch (error) {
+//     console.error("Error saving order to database:", error);
+//     return false;
+//   }
+// }
+
 export async function saveOrderToDatabase(order: DatabaseOrder): Promise<boolean> {
   try {
-    // Format the Order ID to a 5-digit padded string
     const formattedOrderId = order.orderId.padStart(5, "0");
 
-    // Validate and parse the date
-    let isoDate: string;
-    if (order.date && !isNaN(Date.parse(order.date))) {
-      isoDate = new Date(order.date).toISOString(); // Convert valid date to ISO-8601
-    } else {
-      console.warn(`Invalid date value: "${order.date}". Using current date as fallback.`);
-      isoDate = new Date().toISOString(); // Fallback to the current date
-    }
+    const isoDate = order.date && !isNaN(Date.parse(order.date))
+      ? new Date(order.date).toISOString()
+      : new Date().toISOString();
 
+    // Upsert Order
     await prisma.order.upsert({
       where: { orderId: formattedOrderId },
       update: {
@@ -74,7 +227,7 @@ export async function saveOrderToDatabase(order: DatabaseOrder): Promise<boolean
         payStatus: order.payStatus,
         shipStatus: order.shipStatus,
         shipDetail: order.shipDetail || "",
-        date: isoDate, // Use the validated ISO-8601 date
+        date: isoDate,
         printStatus: order.printStatus,
         imageLink: order.imageLink || undefined,
       },
@@ -88,18 +241,59 @@ export async function saveOrderToDatabase(order: DatabaseOrder): Promise<boolean
         payStatus: order.payStatus,
         shipStatus: order.shipStatus,
         shipDetail: order.shipDetail || "",
-        date: isoDate, // Use the validated ISO-8601 date
+        date: isoDate,
         printStatus: order.printStatus,
         imageLink: order.imageLink || undefined,
       },
     });
 
+    // Parse and resolve products
+    const rawProducts = splitProducts(order.product);
+
+    const parsedProducts = await Promise.all(
+      rawProducts.map(async (productString) => {
+        const parsed = parseProductInfo(productString);
+
+        const predesigned = await prisma.predesignedDesign.findFirst({
+          where: { designId: parsed.design },
+        });
+
+        if (!predesigned) {
+          console.warn(`Predesigned design not found for design ID: ${parsed.design}`);
+          return null; // skip this one
+        }
+
+        return {
+          name: parsed.name,
+          design: parsed.design,
+          size: parsed.size,
+          predesignId: predesigned.id,
+          orderId: formattedOrderId,
+        };
+      })
+    );
+
+    // Filter out any nulls (i.e., invalid products)
+    const validProducts = parsedProducts.filter((p): p is NonNullable<typeof p> => p !== null);
+
+    // Ensure there are products to create
+    if (validProducts.length > 0) {
+      await prisma.product.createMany({
+        data: validProducts,
+        skipDuplicates: true,
+      });
+    } else {
+      console.warn("No valid products found to create.");
+    }
+
     return true;
+
   } catch (error) {
     console.error("Error saving order to database:", error);
     return false;
   }
 }
+
 
 export async function updatePhoneNumber(orderId: string, phone: string): Promise<any> {
   try {
@@ -198,6 +392,8 @@ export async function localConvertDbToAppOrder(dbOrder: DatabaseOrder): Promise<
     date: dbOrder.date || new Date().toISOString(),
     printStatus: dbOrder.printStatus || "NOT_PRINTED",
     imageLinks,
+    customDesigns: dbOrder.customDesigns || [], // Include custom designs if available
+    products: dbOrder.products || [], // Include custom designs if available
   };
 }
 
@@ -205,10 +401,14 @@ export async function getAllOrdersFromDb(): Promise<Order[]> {
   try {
     const dbOrders = await prisma.order.findMany({
       orderBy: { createdAt: "desc" },
+      include: {
+        customDesigns: true, // includes related custom designs
+      },
     });
 
     // Filter out invalid or null entries
     const validDbOrders = dbOrders.filter((dbOrder) => dbOrder !== null);
+
 
     return await Promise.all(
       validDbOrders.map(async (dbOrder) =>
@@ -229,7 +429,17 @@ export async function getOrderByIdFromDb(orderId: string): Promise<Order | null>
   try {
     const dbOrder = await prisma.order.findUnique({
       where: { orderId },
+      include: {
+        customDesigns: true, // includes related custom designs
+        products: {
+          include: {
+            predesignedDesign: true, // this will include url, name, designId, etc.
+          },
+        },// includes related products
+      },
     });
+
+    console.log("DB Order:", dbOrder);
 
     if (!dbOrder) return null;
 

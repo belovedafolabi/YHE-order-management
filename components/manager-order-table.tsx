@@ -20,7 +20,7 @@ import { useToast } from "@/hooks/use-toast"
 import { DesignPreview } from "@/components/design-preview"
 import { PredesignedDesignPreview } from "@/components/predesigned-design-preview"
 import type { Order } from "@/lib/types"
-import { parseProductInfo, splitProducts, getTShirtType, isGunProduct, formatProductName } from "@/lib/utils"
+import { parseProductInfo, splitProducts, getTShirtType, isGunProduct, formatProductName, extractDesignDetailsFromUrl } from "@/lib/utils"
 import { updateOrderStatus } from "@/lib/actions"
 import { isValid } from "date-fns"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -49,7 +49,6 @@ export function ManagerOrdersTable({ orders: initialOrders }: ManagerOrdersTable
   const { toast } = useToast()
   const isMobile = useIsMobile()
 
-  console.log(orders[89])
 
   // Simulate loading for skeleton demonstration
   useEffect(() => {
@@ -154,7 +153,6 @@ export function ManagerOrdersTable({ orders: initialOrders }: ManagerOrdersTable
     }
   };
   
-  
 
   const handleSearchChange = (value: string) => {
     try {
@@ -181,6 +179,8 @@ export function ManagerOrdersTable({ orders: initialOrders }: ManagerOrdersTable
         switch (filter) {
           case "custom-front":
             return tshirtType === "custom-front"
+          case "custom-back":
+            return tshirtType === "custom-back"
           case "custom-front-back":
             return tshirtType === "custom-front-back"
           case "pre-designed":
@@ -247,64 +247,117 @@ export function ManagerOrdersTable({ orders: initialOrders }: ManagerOrdersTable
     return products.some((product) => {
       const productInfo = parseProductInfo(product)
       const tshirtType = getTShirtType(productInfo)
-      return tshirtType === "custom-front" || tshirtType === "custom-front-back" || tshirtType === "pre-designed"
+      return tshirtType === "custom-front" || tshirtType === "custom-back" || tshirtType === "custom-front-back" || tshirtType === "pre-designed"
     })
   }
 
   // Function to get design thumbnails for an order
-  const getDesignThumbnails = (productString: string, orderId: string) => {
+  const getDesignThumbnails = (order: any, productString: string, orderId: string) => {
     const products = splitProducts(productString)
-    const thumbnails = []
+    const thumbnails: React.ReactNode[] = []
 
-    // Check each product for custom designs
-    for (let i = 0; i < products.length; i++) {
-      const product = products[i]
-      const productInfo = parseProductInfo(product)
-      const tshirtType = getTShirtType(productInfo)
-      const productName = formatProductName(productInfo.name)
+    // products.map((prod))
 
-      if (tshirtType === "custom-front" || tshirtType === "custom-front-back") {
-        // Add front design thumbnail
-        thumbnails.push(
-          <DesignPreview
-            key={`front-${i}`}
-            designUrl={`/designs/${orderId}-front-${i}.jpg`}
-            designType="front"
-            productName={productName}
-            className="h-8 w-8 md:h-10 md:w-10 transition-transform duration-300 hover:scale-110"
-            showDownload={true}
-          />,
-        )
-
-        // Add back design thumbnail if needed
-        if (tshirtType === "custom-front-back") {
+    let designs = order.customDesigns;
+    designs.map((design: any, i: number) => {
+      if (design.url) {
+        let item = extractDesignDetailsFromUrl(design.url)
+           // Make sure item and itemNumber are defined
+        if (!item || item.itemNumber === undefined) return;
+        const product = products[item?.itemNumber]
+        const productInfo = parseProductInfo(product)
+        // console.log("Product Info:", productInfo)
+        const tshirtType = getTShirtType(productInfo)
+        const productName = formatProductName(productInfo.name)
+        if (tshirtType === "pre-designed" && productInfo.design){
+          const predesignedDesign = getDesignByName(productInfo.design)
+          console.log(productInfo.design)
+          if (productInfo.design) {
+            thumbnails.push(
+              <PredesignedDesignPreview
+                designId={""}
+                designName={productInfo.design || ""}
+                className="h-8 w-8 md:h-10 md:w-10 transition-transform duration-300 hover:scale-110"
+                showDownload={true}
+              />
+            )
+          }
+        } else {
           thumbnails.push(
             <DesignPreview
-              key={`back-${i}`}
-              designUrl={`/designs/${orderId}-back-${i}.jpg`}
-              designType="back"
+              key={`design-${i}`}
+              designUrl={design.url}
+              designType={item?.type as any}
               productName={productName}
               className="h-8 w-8 md:h-10 md:w-10 transition-transform duration-300 hover:scale-110"
               showDownload={true}
             />,
           )
         }
-      } else if (tshirtType === "pre-designed" && productInfo.design) {
-        // Check if this is a predesigned design
-        const predesignedDesign = getDesignByName(productInfo.design)
-        if (predesignedDesign) {
-          thumbnails.push(
-            <PredesignedDesignPreview
-              key={`predesigned-${i}`}
-              designId={predesignedDesign.id}
-              designName={predesignedDesign.name}
-              className="h-8 w-8 md:h-10 md:w-10 transition-transform duration-300 hover:scale-110"
-              showDownload={true}
-            />,
-          )
-        }
       }
-    }
+    })
+
+    // Check each product for custom designs
+    // for (let i = 0; i < products.length; i++) {
+    //   const product = products[i]
+    //   const productInfo = parseProductInfo(product)
+    //   const tshirtType = getTShirtType(productInfo)
+    //   const productName = formatProductName(productInfo.name)
+    //   // console.log("Product:", products[1])
+      
+    //   // thumbnails.push(
+    //   //   <DesignPreview
+    //   //     // key={`front-${i}`}
+    //   //     designUrl={product.customDesigns.length > 0 ? product?.customDesigns[0]?.url : ""}
+    //   //     designType="front"
+    //   //     productName={"Sample Prod"}
+    //   //     className="h-8 w-8 md:h-10 md:w-10 transition-transform duration-300 hover:scale-110"
+    //   //     showDownload={true}
+    //   //   />,
+    //   // )
+
+    //   // if (tshirtType === "custom-front" || tshirtType === "custom-front-back") {
+    //   //   // Add front design thumbnail
+    //   //   thumbnails.push(
+    //   //     <DesignPreview
+    //   //       key={`front-${i}`}
+    //   //       designUrl={`/designs/${orderId}-front-${i}.jpg`}
+    //   //       designType="front"
+    //   //       productName={productName}
+    //   //       className="h-8 w-8 md:h-10 md:w-10 transition-transform duration-300 hover:scale-110"
+    //   //       showDownload={true}
+    //   //     />,
+    //   //   )
+
+    //   //   // Add back design thumbnail if needed
+    //   //   if (tshirtType === "custom-front-back") {
+    //   //     thumbnails.push(
+    //   //       <DesignPreview
+    //   //         key={`back-${i}`}
+    //   //         designUrl={`/designs/${orderId}-back-${i}.jpg`}
+    //   //         designType="back"
+    //   //         productName={productName}
+    //   //         className="h-8 w-8 md:h-10 md:w-10 transition-transform duration-300 hover:scale-110"
+    //   //         showDownload={true}
+    //   //       />,
+    //   //     )
+    //   //   }
+    //   // } else if (tshirtType === "pre-designed" && productInfo.design) {
+    //   //   // Check if this is a predesigned design
+    //   //   const predesignedDesign = getDesignByName(productInfo.design)
+    //   //   if (predesignedDesign) {
+    //   //     thumbnails.push(
+    //   //       <PredesignedDesignPreview
+    //   //         key={`predesigned-${i}`}
+    //   //         designId={predesignedDesign.id}
+    //   //         designName={predesignedDesign.name}
+    //   //         className="h-8 w-8 md:h-10 md:w-10 transition-transform duration-300 hover:scale-110"
+    //   //         showDownload={true}
+    //   //       />,
+    //   //     )
+    //   //   }
+    //   // }
+    // }
 
     return <div className="flex flex-wrap gap-2">{thumbnails}</div>
   }
@@ -323,91 +376,91 @@ export function ManagerOrdersTable({ orders: initialOrders }: ManagerOrdersTable
     setSearchQuery("")
   }
 
-// Mobile card view for orders
-const renderMobileOrderCard = (order: Order) => {
-    const isExpanded = expandedOrder === order.orderId
+  // Mobile card view for orders
+  const renderMobileOrderCard = (order: Order) => {
+      const isExpanded = expandedOrder === order.orderId
 
-    return (
-        <Card key={order.orderId} className="mb-4 border-amber-500/20 shadow-sm transition-all duration-300 card-hover">
-            <CardHeader className="p-4 flex flex-row items-center justify-between">
-                <div className="flex flex-col">
-                    <CardTitle className="text-base">
-                        <Link href={`/order/${order.orderId}`} className="hover:text-amber-500 transition-colors duration-300">
-                            #{order.orderId}
-                        </Link>
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">{order.customer}</p>
-                </div>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 transition-transform duration-300"
-                    onClick={() => toggleOrderExpansion(order.orderId)}
-                >
-                    <ChevronRight className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? "rotate-90" : ""}`} />
-                </Button>
-            </CardHeader>
+      return (
+          <Card key={order.orderId} className="mb-4 border-amber-500/20 shadow-sm transition-all duration-300 card-hover">
+              <CardHeader className="p-4 flex flex-row items-center justify-between">
+                  <div className="flex flex-col">
+                      <CardTitle className="text-base">
+                          <Link href={`/order/${order.orderId}`} className="hover:text-amber-500 transition-colors duration-300">
+                              #{order.orderId}
+                          </Link>
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">{order.customer}</p>
+                  </div>
+                  <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 transition-transform duration-300"
+                      onClick={() => toggleOrderExpansion(order.orderId)}
+                  >
+                      <ChevronRight className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? "rotate-90" : ""}`} />
+                  </Button>
+              </CardHeader>
 
-            {isExpanded && (
-                <CardContent className="p-4 pt-0 animate-fade-in">
-                    <div className="grid gap-3 text-sm">
-                        <div className="grid grid-cols-2 gap-1">
-                            <span className="font-medium text-muted-foreground">Product:</span>
-                            <span className="truncate">{getProductSummary(order.product)}</span>
-                        </div>
+              {isExpanded && (
+                  <CardContent className="p-4 pt-0 animate-fade-in">
+                      <div className="grid gap-3 text-sm">
+                          <div className="grid grid-cols-2 gap-1">
+                              <span className="font-medium text-muted-foreground">Product:</span>
+                              <span className="truncate">{getProductSummary(order.product)}</span>
+                          </div>
 
-                        <div className="grid grid-cols-2 gap-1">
-                            <span className="font-medium text-muted-foreground">Date:</span>
-                            <span>{formatDate(order.date)}</span>
-                        </div>
+                          <div className="grid grid-cols-2 gap-1">
+                              <span className="font-medium text-muted-foreground">Date:</span>
+                              <span>{formatDate(order.date)}</span>
+                          </div>
 
-                        <div className="grid grid-cols-2 gap-1">
-                            <span className="font-medium text-muted-foreground">Total:</span>
-                            <span className="font-bold text-amber-500">₦{order.total.toFixed(2)}</span>
-                        </div>
+                          <div className="grid grid-cols-2 gap-1">
+                              <span className="font-medium text-muted-foreground">Total:</span>
+                              <span className="font-bold text-amber-500">₦{order.total.toFixed(2)}</span>
+                          </div>
 
-                        <div className="grid grid-cols-2 gap-1">
-                            <span className="font-medium text-muted-foreground">Print Status:</span>
-                            <Select
-                                value={order.printStatus === "PRINTED" ? "PRINTED" : "NOT_PRINTED"}
-                                onValueChange={(value) => handleStatusChange(order.orderId, value)}
-                            >
-                                <SelectTrigger className="h-7 w-full">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="NOT_PRINTED">Not Printed</SelectItem>
-                                    <SelectItem value="PRINTED">Printed</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
+                          <div className="grid grid-cols-2 gap-1">
+                              <span className="font-medium text-muted-foreground">Print Status:</span>
+                              <Select
+                                  value={order.printStatus === "PRINTED" ? "PRINTED" : "NOT_PRINTED"}
+                                  onValueChange={(value) => handleStatusChange(order.orderId, value)}
+                              >
+                                  <SelectTrigger className="h-7 w-full">
+                                      <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                      <SelectItem value="NOT_PRINTED">Not Printed</SelectItem>
+                                      <SelectItem value="PRINTED">Printed</SelectItem>
+                                  </SelectContent>
+                              </Select>
+                          </div>
 
-                        {hasCustomDesigns(order.product) && (
-                            <div className="grid grid-cols-1 gap-1">
-                                <span className="font-medium text-muted-foreground">Designs:</span>
-                                {getDesignThumbnails(order.product, order.orderId)}
-                            </div>
-                        )}
+                          {hasCustomDesigns(order.product) && (
+                              <div className="grid grid-cols-1 gap-1">
+                                  <span className="font-medium text-muted-foreground">Designs:</span>
+                                  {getDesignThumbnails(order, order.product, order.orderId)}
+                              </div>
+                          )}
 
-                        <div className="pt-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full border-amber-500/20 hover:bg-amber-500/10 hover:text-amber-500 transition-all duration-300 button-hover"
-                                asChild
-                            >
-                                <Link href={`/order/${order.orderId}`}>View Details</Link>
-                            </Button>
-                        </div>
-                    </div>
-                </CardContent>
-            )}
-        </Card>
-    )
-}
+                          <div className="pt-2">
+                              <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full border-amber-500/20 hover:bg-amber-500/10 hover:text-amber-500 transition-all duration-300 button-hover"
+                                  asChild
+                              >
+                                  <Link href={`/order/${order.orderId}`}>View Details</Link>
+                              </Button>
+                          </div>
+                      </div>
+                  </CardContent>
+              )}
+          </Card>
+      )
+  }
 
 // Sort orders by ascending order ID
-orders.sort((a, b) => a.orderId.localeCompare(b.orderId))
+  orders.sort((a, b) => a.orderId.localeCompare(b.orderId))
 
   // Pagination controls
   const renderPagination = () => {
@@ -518,7 +571,7 @@ orders.sort((a, b) => a.orderId.localeCompare(b.orderId))
             {/* Filters - stacked on mobile, side by side on desktop */}
             <div className="flex flex-col md:flex-row gap-4">
               {/* Product type filter */}
-              <Select value={filter} onValueChange={setFilter} className="flex-1">
+              <Select value={filter} onValueChange={setFilter}>
                 <SelectTrigger className="transition-all duration-300">
                   <div className="flex items-center gap-2">
                     <Filter className="h-4 w-4" />
@@ -528,6 +581,7 @@ orders.sort((a, b) => a.orderId.localeCompare(b.orderId))
                 <SelectContent>
                   <SelectItem value="all">All Products</SelectItem>
                   <SelectItem value="custom-front">Custom Design Front</SelectItem>
+                  <SelectItem value="custom-back">Custom Design Back</SelectItem>
                   <SelectItem value="custom-front-back">Custom Design Front & Back</SelectItem>
                   <SelectItem value="pre-designed">Pre-designed</SelectItem>
                   <SelectItem value="guns">Guns (All)</SelectItem>
@@ -535,7 +589,7 @@ orders.sort((a, b) => a.orderId.localeCompare(b.orderId))
               </Select>
 
               {/* Print status filter */}
-              <Select value={printFilter} onValueChange={setPrintFilter} className="flex-1">
+              <Select value={printFilter} onValueChange={setPrintFilter}>
                 <SelectTrigger className="transition-all duration-300">
                   <div className="flex items-center gap-2">
                     <Filter className="h-4 w-4" />
@@ -635,7 +689,7 @@ orders.sort((a, b) => a.orderId.localeCompare(b.orderId))
                         </TableCell>
                         <TableCell>
                           {hasCustomDesigns(order.product) ? (
-                            getDesignThumbnails(order.product, order.orderId)
+                            getDesignThumbnails(order, order.product, order.orderId)
                           ) : (
                             <span className="text-muted-foreground text-sm">N/A</span>
                           )}

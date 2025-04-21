@@ -1,10 +1,11 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { FileUpload } from "@/components/file-upload"
 import { DesignPreview } from "@/components/design-preview"
 import { PredesignedDesignPreview } from "@/components/predesigned-design-preview"
 import { parseProductInfo, getTShirtType, formatProductName } from "@/lib/utils"
+import { isGunProduct } from "@/lib/utils";
 import { ProductCardSkeleton } from "@/components/skeletons"
 import { getDesignByName } from "@/lib/predesigned-designs"
 
@@ -12,36 +13,44 @@ interface ProductCardProps {
   product: string
   orderId: string
   index?: number
+  customDesigns?: any[]
 }
 
-export function ProductCard({ product, orderId, index = 0 }: ProductCardProps) {
+export function ProductCard({ product, orderId, index = 0, customDesigns }: ProductCardProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [frontPreview, setFrontPreview] = useState<string | null>(null);
   const [backPreview, setBackPreview] = useState<string | null>(null);
+  const [frontOnlyPreview, setFrontOnlyPreview] = useState<string | null>(null);
+  const [backOnlyPreview, setBackOnlyPreview] = useState<string | null>(null);
 
-  // Simulate loading for skeleton demonstration
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 800)
+    const timer = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
 
-    return () => clearTimeout(timer)
-  }, [])
+  useEffect(() => {
+    if (!customDesigns) return;
 
-  if (isLoading) {
-    return <ProductCardSkeleton />
-  }
+    const front = customDesigns.find((design) => design.type === "front" && index === design.itemNumber);
+    const back = customDesigns.find((design) => design.type === "back" && index === design.itemNumber);
+    const frontOnly = customDesigns.find((design) => design.type === "front-only" && index === design.itemNumber);
+    const backOnly = customDesigns.find((design) => design.type === "back-only" && index === design.itemNumber);
 
-  const productInfo = parseProductInfo(product)
-  const tshirtType = getTShirtType(productInfo)
-  const formattedName = formatProductName(productInfo.name)
 
-  // For demo purposes, we'll construct design URLs based on order ID and product index
-  const getFrontDesignUrl = () => `/designs/${orderId}-front-${index}.jpg`
-  const getBackDesignUrl = () => `/designs/${orderId}-back-${index}.jpg`
+    if (front?.url) setFrontPreview(front.url);
+    if (back?.url) setBackPreview(back.url);
+    if (frontOnly?.url) setFrontOnlyPreview(frontOnly.url);
+    if (backOnly?.url) setBackOnlyPreview(backOnly.url);
+  }, [customDesigns]);
 
-  // Get predesigned design if available
-  const predesignedDesign = productInfo.design ? getDesignByName(productInfo.design) : null
+  if (isLoading) return <ProductCardSkeleton />;
+  const productInfo = parseProductInfo(product);
+  console.log("Product Info:", productInfo);
+  const tshirtType = getTShirtType(productInfo);
+  const formattedName = formatProductName(productInfo.name);
+  const isGun = isGunProduct(productInfo.name);
+  console.log(isGun, "isGun");
+  const predesignedDesign = productInfo.design ? getDesignByName(productInfo.design) : null;
 
   return (
     <Card className="overflow-hidden border-amber-500/20 shadow-sm transition-all duration-300 card-hover">
@@ -51,15 +60,38 @@ export function ProductCard({ product, orderId, index = 0 }: ProductCardProps) {
             <div className="font-medium text-amber-500">{formattedName}</div>
             {productInfo.size && (
               <div className="text-sm text-muted-foreground">
-                Size: <span className="font-medium">{productInfo.size}</span>
+                Size: <span className="font-medium uppercase">{productInfo.size}</span>
               </div>
             )}
-            {productInfo.design && tshirtType !== "custom-front" && tshirtType !== "custom-front-back" && (
+            {productInfo.design && tshirtType !== "custom-back" && tshirtType !== "custom-front" && tshirtType !== "custom-front-back" && (
               <div className="text-sm text-muted-foreground">
                 Design: <span className="font-medium">{productInfo.design}</span>
               </div>
             )}
           </div>
+
+
+          {tshirtType === "custom-back" && (
+            <div className="grid gap-4">
+              <div className="text-sm text-muted-foreground bg-muted/30 p-2 rounded-md">
+                Design: Custom back design
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-2">
+                  <div className="text-sm font-medium">Back Design Preview</div>
+                  <DesignPreview
+                    designUrl={backOnlyPreview as any}
+                    designType="back-only"
+                    productName={formattedName}
+                    className="h-24 w-24 transition-transform duration-300 bg-white hover:scale-105"
+                    showDownload={true}
+                  />
+                </div>
+                <FileUpload label="Upload Back Design" orderId={orderId} designType="back-only" productIndex={index} setPreview={setBackOnlyPreview} />
+              </div>
+            </div>
+          )}
+
 
           {tshirtType === "custom-front" && (
             <div className="grid gap-4">
@@ -70,13 +102,14 @@ export function ProductCard({ product, orderId, index = 0 }: ProductCardProps) {
                 <div className="flex flex-col gap-2">
                   <div className="text-sm font-medium">Front Design Preview</div>
                   <DesignPreview
-                    designUrl={frontPreview as any}
-                    designType="front"
+                    designUrl={frontOnlyPreview as any}
+                    designType="front-only"
                     productName={formattedName}
-                    className="h-24 w-24 transition-transform duration-300 hover:scale-105"
+                    className="h-24 w-24 transition-transform duration-300 bg-white hover:scale-105"
+                    showDownload={true}
                   />
                 </div>
-                <FileUpload label="Upload Front Design" orderId={orderId} designType="front" productIndex={index} setPreview={setFrontPreview} />
+                <FileUpload label="Upload Front Design" orderId={orderId} designType="front-only" productIndex={index} setPreview={setFrontOnlyPreview} />
               </div>
             </div>
           )}
@@ -93,7 +126,8 @@ export function ProductCard({ product, orderId, index = 0 }: ProductCardProps) {
                     designUrl={frontPreview as any}
                     designType="front"
                     productName={formattedName}
-                    className="h-24 w-24 transition-transform duration-300 hover:scale-105"
+                    className="h-24 w-24 transition-transform duration-300 bg-white hover:scale-105"
+                    showDownload={true}
                   />
                 </div>
                 <FileUpload label="Upload Front Design" orderId={orderId} designType="front" productIndex={index} setPreview={setFrontPreview} />
@@ -105,7 +139,8 @@ export function ProductCard({ product, orderId, index = 0 }: ProductCardProps) {
                     designUrl={backPreview as any}
                     designType="back"
                     productName={formattedName}
-                    className="h-24 w-24 transition-transform duration-300 hover:scale-105"
+                    className="h-24 w-24 transition-transform duration-300 bg-white hover:scale-105"
+                    showDownload={true}
                   />
                 </div>
                 <FileUpload label="Upload Back Design" orderId={orderId} designType="back" productIndex={index} setPreview={setBackPreview} />
@@ -122,14 +157,15 @@ export function ProductCard({ product, orderId, index = 0 }: ProductCardProps) {
                 <div className="flex flex-col gap-2">
                   <div className="text-sm font-medium">Design Preview</div>
                   <PredesignedDesignPreview
-                    designId={predesignedDesign.id}
-                    designName={predesignedDesign.name}
-                    className="h-24 w-24 transition-transform duration-300 hover:scale-105"
+                    designId={""}
+                    designName={productInfo.design || ""}
+                    className="h-24 w-24 transition-transform duration-300 bg-white hover:scale-105"
+                    showDownload={true}
                   />
                 </div>
                 <div className="flex flex-col gap-2">
                   <div className="text-sm font-medium">Design Name</div>
-                  <div className="text-sm p-2 bg-muted/30 rounded-md">{predesignedDesign.name}</div>
+                  <div className="text-sm p-2 bg-muted/30 rounded-md">{productInfo.design}</div>
                 </div>
               </div>
             </div>

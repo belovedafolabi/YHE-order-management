@@ -14,7 +14,7 @@ import axios from "axios"
 interface FileUploadProps {
   label: string
   orderId: string
-  designType: "front" | "back"
+  designType: "front" | "back" | "front-only" | "back-only"
   productIndex?: number
   setPreview: any
 }
@@ -77,22 +77,7 @@ export function FileUpload({ label, orderId, designType, productIndex = 0, setPr
         title: `Uploading ${designType} design`,
         description: "Please wait while we upload your design",
       })
-
-      // Simulate progress
-      // const interval = setInterval(() => {
-      //   setProgress((prev) => {
-      //     if (prev >= 95) {
-      //       clearInterval(interval)
-      //       return 95
-      //     }
-      //     return prev + 5
-      //   })
-      // }, 100)
-
-      // Upload the file
-      // const result = await uploadDesign(file, orderId, designType, productIndex)
-
-      // clearInterval(interval)
+      
       let data = {
         orderId,
         type: designType,

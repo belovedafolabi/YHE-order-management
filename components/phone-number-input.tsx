@@ -87,13 +87,13 @@ export function PhoneNumberInput({ orderId, initialPhoneNumber }: PhoneNumberInp
   return (
     <div className="grid gap-2">
       <div className="text-sm font-medium text-muted-foreground">Phone Number</div>
-
       {!initialPhoneNumber && !success && (
         <div className="flex items-center gap-2 text-sm text-red-500 mb-2">
           <AlertCircle className="h-4 w-4 flex-shrink-0" />
-          <span>Please provide your phone number for order updates</span>
+          <span>Your WhatsApp phone number is required before you upload/manage your design(s).</span>
         </div>
       )}
+
       {/* <div className="inline-flex max-w-fit items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500 transition-all duration-300 hover:bg-amber-500/20">
         Phone: {initialPhoneNumber || "No phone number available"}
       </div> */}
@@ -135,7 +135,7 @@ export function PhoneNumberInput({ orderId, initialPhoneNumber }: PhoneNumberInp
           </Button>
         )}
       </div>
-
+      {/* Error and success messages */}
       {error && (
         <div className="text-sm text-red-500 flex items-center gap-1 animate-fade-in">
           <AlertCircle className="h-3 w-3 flex-shrink-0" />

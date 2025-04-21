@@ -8,42 +8,56 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model Order {
-  orderId       String          @id
-  customerName  String
-  phone         String?
-  product       String
-  total         Float
-  orderStatus   String
-  payStatus     String
-  shipStatus    String
-  shipDetail    String?
-  date          DateTime
-  printStatus   String
-  imageLink     String?
-  createdAt     DateTime        @default(now())
+model Product {
+  id          String @id @default(cuid())
+  size        String
+  name        String
+  design      String
+  predesignId String
+  orderId     String
 
-  // Relation to custom designs
-  customDesigns CustomDesign[]  @relation("OrderCustomDesigns")
+  predesignedDesign PredesignedDesign @relation(fields: [predesignId], references: [id], onDelete: Cascade)
+  order             Order             @relation(fields: [orderId], references: [orderId], onDelete: Cascade)
+}
+
+model Order {
+  orderId      String   @id
+  customerName String
+  phone        String?
+  product      String
+  total        Float
+  orderStatus  String
+  payStatus    String
+  shipStatus   String
+  shipDetail   String?
+  date         DateTime
+  printStatus  String
+  imageLink    String?
+  createdAt    DateTime @default(now())
+
+  products      Product[]
+  customDesigns CustomDesign[]
 }
 
 model CustomDesign {
-  id           String    @id @default(cuid())
-  url          String
-  orderId      String
-  type         String
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id        String   @id @default(cuid())
+  url       String
+  orderId   String
+  itemNumber  Int
+  type      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  // Relation back to Order
-  order        Order     @relation("OrderCustomDesigns", fields: [orderId], references: [orderId], onDelete: Cascade)
+  order Order @relation(fields: [orderId], references: [orderId], onDelete: Cascade)
 }
 
 model PredesignedDesign {
-  id        String    @id @default(cuid())
-  designId  String    @unique
+  id        String   @id @default(cuid())
+  designId  String   @unique
   url       String
   name      String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
 }

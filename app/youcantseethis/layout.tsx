@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { AdminNav } from "@/components/admin-nav"
+import { Footer } from "@/components/footer"
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
@@ -23,13 +24,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <main className="flex-1">
         <div className="container py-6 md:py-8 px-4 animate-fade-in">{children}</div>
       </main>
-      <footer className="w-full border-t border-border/40 bg-background py-4 md:py-6">
-        <div className="container flex flex-col items-center justify-center gap-2 md:gap-4 text-center px-4">
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} YHE OrderTrack. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
