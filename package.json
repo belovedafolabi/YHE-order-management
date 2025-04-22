@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "preinstall": "pnpm approve-builds --all"
+    "preinstall": "pnpm approve-builds --global"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
