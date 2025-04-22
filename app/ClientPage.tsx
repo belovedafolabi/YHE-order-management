@@ -1,10 +1,9 @@
 "use client"
 
-import type React from "react"
+import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { SearchIcon, Loader2 } from "lucide-react"
 import { z } from "zod"
-import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,6 +14,7 @@ import dynamic from 'next/dynamic'
 import { ModelCarouselSkeleton } from '@/components/skeletons'
 import { FAQSection } from "@/components/faq"
 import { ScrollToTopButton } from "@/components/ScrollToTopButton"
+import Link from "next/link"
 const ModelCarousel = dynamic(() => import('@/components/ModelCarousel').then((mod) => mod.ModelCarousel), { ssr: false });
 
 // Zod schema for order ID validation
@@ -26,8 +26,16 @@ export default function ClientPage() {
   const [orderId, setOrderId] = useState("")
   const [error, setError] = useState("")
   const [isSearching, setIsSearching] = useState(false)
+  const [carouselLoaded, setCarouselLoaded] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
+
+  // On mount, show skeleton for 3s, then swap to real carousel
+  useEffect(() => {
+    const timer = setTimeout(() => setCarouselLoaded(true), 4000)
+    return () => clearTimeout(timer)
+  }, [])
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -132,6 +140,15 @@ export default function ClientPage() {
               )}
             </Button>
               </form>
+              
+            <Link
+              href="https://yhe.bumpa.shop/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center min-w-full justify-center bg-amber-500 text-white hover:bg-amber-600 transition-colors duration-300 rounded-md px-4 py-2 text-sm font-medium"
+            >
+              Visit Store
+            </Link>
             </div>
           </div>
             </div>
@@ -148,10 +165,23 @@ export default function ClientPage() {
                   Check out our latest designs.
                 </p> */}
                 <p className="mx-auto max-w-[700px] text-muted-foreground text-sm md:text-xl">
-                  Zoom in and out to explore the details of our designs.
+                  Zoom in and out to explore the details of our designs. Two fingers to drag.
                 </p>
               </div>
-              <ModelCarousel models={['cuteDemon.glb', 'spider.glb', 'Pipe.glb']} />
+              {/* ⏳ Skeleton or Carousel */}
+              {!carouselLoaded ? (
+                <ModelCarouselSkeleton />
+              ) : (
+                <ModelCarousel
+                  models={[
+                    "classof.glb",
+                    "veni.glb",
+                    "plain.glb",
+                    "lawyer.glb",
+                    "years.glb",
+                  ]}
+                />
+              )}
             </div>
           </div>
         </section>

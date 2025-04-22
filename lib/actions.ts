@@ -134,19 +134,19 @@ export async function updateOrderStatus(orderId: string, status: string, type: "
 
 // Function to save phone number
 export async function savePhoneNumber(orderId: string, phone: string): Promise<void> {
-  console.log("savePhoneNumber called with:", orderId, phone);
+  console.log("save phone number");
   try {
     // Validate orderId
     orderIdSchema.parse(orderId);
-    console.log("Order ID validated:", orderId);
+    // console.log("Order ID validated:", orderId);
 
     // Validate phone number
     phoneNumberSchema.parse(phone);
-    console.log("Phone number validated:", phone);
+    // console.log("Phone number validated:", phone);
 
     // Update phone number in the database
     await updatePhoneNumber(orderId, phone);
-    console.log("Phone number saved successfully");
+    // console.log("Phone number saved successfully");
   } catch (error) {
     console.error("Error saving phone number:", error);
     throw new Error("Failed to save phone number");

@@ -17,6 +17,6 @@ export const FAQS = [
   },
   {
     question: "Do I need an account to view my order?",
-    answer: "No, you can access your order directly using your Order ID. However, having an account gives you better tracking and history features.",
+    answer: "No, you can access your order directly using your Order ID.",
   }
 ]

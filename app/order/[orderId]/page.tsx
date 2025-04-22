@@ -26,8 +26,6 @@ export default async function OrderPage({
   console.log(`Looking for order ID: ${orderId}`)
 
   const order = await getOrderById(orderId)
-  console.log(`Order data: ${JSON.stringify(order)}`)
-  console.log(order)
 
   // Debug log to see if we found the order
   console.log(`Order found: ${order ? "Yes" : "No"}`)

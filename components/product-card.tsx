@@ -45,11 +45,9 @@ export function ProductCard({ product, orderId, index = 0, customDesigns }: Prod
 
   if (isLoading) return <ProductCardSkeleton />;
   const productInfo = parseProductInfo(product);
-  console.log("Product Info:", productInfo);
   const tshirtType = getTShirtType(productInfo);
   const formattedName = formatProductName(productInfo.name);
   const isGun = isGunProduct(productInfo.name);
-  console.log(isGun, "isGun");
   const predesignedDesign = productInfo.design ? getDesignByName(productInfo.design) : null;
 
   return (

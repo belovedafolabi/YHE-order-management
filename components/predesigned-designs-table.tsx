@@ -25,7 +25,6 @@ export function PredesignedDesignsTable() {
       setIsLoading(true)
       try {
         const data = await axios.get("/api/admin/design")
-        console.log("Fetched designs:", data.data.designs)
         setDesigns(data.data.designs)
         // setImages(data.data.designs)
       } catch (error) {

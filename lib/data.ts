@@ -60,7 +60,7 @@ export async function updatePrintStatus(orderId: string, printStatus: "PRINTED" 
     orders[orderIndex].printStatus = printStatus
 
     // Optionally, you could persist this change to the database here if needed
-    console.log(`Print status for order ${orderId} updated to ${printStatus}.`)
+    // console.log(`Print status for order ${orderId} updated to ${printStatus}.`)
     return true
   } catch (error) {
     console.error("Error updating print status:", error)

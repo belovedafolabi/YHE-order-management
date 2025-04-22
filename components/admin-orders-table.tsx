@@ -49,7 +49,6 @@ export function AdminOrdersTable({ orders: initialOrders }: AdminOrdersTableProp
   const { toast } = useToast()
   const isMobile = useIsMobile()
 
-  console.log(orders[89])
 
   // Simulate loading for skeleton demonstration
   useEffect(() => {
