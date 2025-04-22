@@ -367,6 +367,21 @@ export async function localConvertCsvToDbOrder(csvOrder: Order): Promise<Databas
     printStatus: csvOrder.orderStatus === "PRINTED" ? "PRINTED" : "NOT_PRINTED",
   };
 }
+export async function convertCsvToDbOrder(csvOrder: Order): Promise<DatabaseOrder> {
+  return {
+    orderId: csvOrder.orderId,
+    customerName: csvOrder.customer,
+    phone: csvOrder.phone,
+    product: csvOrder.product,
+    total: csvOrder.total,
+    orderStatus: csvOrder.orderStatus,
+    payStatus: csvOrder.paymentStatus,
+    shipStatus: csvOrder.shippingStatus,
+    shipDetail: csvOrder.shippingDetails,
+    date: csvOrder.date,
+    printStatus: csvOrder.orderStatus === "PRINTED" ? "PRINTED" : "NOT_PRINTED",
+  };
+}
 
 export async function localConvertDbToAppOrder(dbOrder: DatabaseOrder): Promise<Order> {
   let imageLinks: ImageLink[] = [];
