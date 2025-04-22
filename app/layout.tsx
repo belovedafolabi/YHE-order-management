@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import { LoadingAnimation } from "@/components/loading-animation"
 import { GridBackground } from "@/components/grid-background"
+import { Suspense } from "react"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -63,7 +64,9 @@ export default function RootLayout({
       <body className={`${inter.className} min-h-screen bg-background antialiased`}>
         <ThemeProvider>
           <GridBackground />
-          <LoadingAnimation />
+          <Suspense fallback={<div>Loading...</div>}>
+            <LoadingAnimation />
+          </Suspense>
           {children}
           <Toaster />
         </ThemeProvider>

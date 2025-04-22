@@ -279,6 +279,7 @@ export function ModelCarousel({ models }: ModelCarouselProps) {
           ONE: THREE.TOUCH.ROTATE,
           TWO: THREE.TOUCH.DOLLY_PAN,
         }}
+        autoRotate autoRotateSpeed={4}
         />
       {/* FlyControls: first-person flying */}
       {/* PointerLockControls: first-person with pointer lock */}

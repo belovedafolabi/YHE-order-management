@@ -1,7 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getOrderById } from "@/lib/data"
 import { z } from "zod"
-import { orderIdSchema } from "@/lib/actions"
+
+const orderIdSchema = z.string().regex(/^\d+$/, {
+  message: "Order ID must contain only numbers",
+});
 
 export async function GET(request: NextRequest) {
   try {
