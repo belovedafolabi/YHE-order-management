@@ -176,6 +176,7 @@ export default function ClientPage() {
                   models={[
                     "classof.glb",
                     "veni.glb",
+                    "result.glb",
                     "plain.glb",
                     "lawyer.glb",
                     "years.glb",

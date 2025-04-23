@@ -152,7 +152,7 @@ interface ModelCarouselProps {
 } */
 
 /* Fully working with all features */
-function ModelDisplay({
+/* function ModelDisplay({
   url,
   baseSize = 6,
   verticalOffset = 0
@@ -214,6 +214,96 @@ function ModelDisplay({
 
   return (
     <group ref={ref} dispose={null}>
+      <primitive object={scene} />
+    </group>
+  )
+} */
+
+function ModelDisplay({
+  url,
+  baseSize = 6,
+  verticalOffset = 0
+}: {
+  url: string
+  baseSize?: number
+  verticalOffset?: number
+}) {
+  const { scene, animations } = useGLTF(url, true)
+  const groupRef = useRef<THREE.Group>(null)
+  const mixerRef = useRef<THREE.AnimationMixer | null>(null)
+  const [opacity, setOpacity] = useState(0)
+  const fadeSpeed = 0.05
+
+  useEffect(() => {
+    const group = groupRef.current
+    if (!group) return
+
+    group.scale.setScalar(1)
+    group.position.set(0, 0, 0)
+
+    const box = new THREE.Box3().setFromObject(group)
+    const size = box.getSize(new THREE.Vector3())
+    const maxDim = Math.max(size.x, size.y, size.z)
+    const scale = baseSize / maxDim
+    group.scale.setScalar(scale)
+
+    const center = box.getCenter(new THREE.Vector3())
+    group.position.set(
+      -center.x * scale,
+      -center.y * scale + verticalOffset,
+      -center.z * scale
+    )
+
+    setOpacity(0)
+
+    scene.traverse((child: any) => {
+      if (child.isMesh) {
+        child.material.transparent = true
+        child.material.opacity = 0
+        child.material.depthWrite = true
+      }
+    })
+
+    if (animations.length > 0) {
+      const mixer = new THREE.AnimationMixer(scene)
+      mixerRef.current = mixer
+
+      animations.forEach((clip) => {
+        const action = mixer.clipAction(clip)
+        action.enabled = true
+        action.setLoop(THREE.LoopRepeat, Infinity)
+        action.clampWhenFinished = false
+        action.fadeIn(0.5)
+        action.play()
+      })
+    }
+
+    return () => {
+      mixerRef.current?.stopAllAction()
+      mixerRef.current?.uncacheRoot(scene)
+    }
+  }, [scene, animations, baseSize, verticalOffset])
+
+  useFrame((_, delta) => {
+    const group = groupRef.current
+    if (!group) return
+
+    const nextOpacity = Math.min(opacity + fadeSpeed, 1)
+    if (nextOpacity !== opacity) {
+      setOpacity(nextOpacity)
+      group.traverse((child: any) => {
+        if (child.isMesh) {
+          child.material.opacity = nextOpacity
+        }
+      })
+    }
+
+    // Update animation mixer
+    mixerRef.current?.update(delta)
+  })
+
+  return (
+    <group ref={groupRef} dispose={null}>
       <primitive object={scene} />
     </group>
   )
