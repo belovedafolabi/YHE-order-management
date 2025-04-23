@@ -174,7 +174,6 @@ export default function ClientPage() {
               ) : (
                 <ModelCarousel
                   models={[
-                    "2025anim.glb",
                     "classof.glb",
                     "veni.glb",
                     "plain.glb",
