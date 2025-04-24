@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     "order details",
     "customer orders",
   ],
-  authors: [{ name: "YHE OrderTrack", url: "https://yheorder.vercel.app" }],
+  authors: [{ name: "YHE OrderTrack", url: "https://yhe-pi.vercel.app" }],
   creator: "YHE OrderTrack",
   publisher: "YHE OrderTrack",
   applicationName: "YHE OrderTrack - Order Management System",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     description:
       "Track and manage your orders with ease. Upload designs, check order status, and get real-time updates on your purchases.",
     type: "website",
-    url: "https://yheorder.vercel.app",
+    url: "https://yhe-pi.vercel.app",
     images: ["/images/yhe-OG.png"],
   },
   twitter: {
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
       "Track and manage your orders with ease. Upload designs, check order status, and get real-time updates on your purchases.",
     images: ["/images/yhe-OG.png"],
   },
-  generator: "yheorder.vercel.app",
+  generator: "yhe-pi.vercel.app",
 }
 
 export default function RootLayout({
