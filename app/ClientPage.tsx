@@ -178,8 +178,7 @@ export default function ClientPage() {
                     "veni.glb",
                     "result.glb",
                     "plain.glb",
-                    "lawyer.glb",
-                    "years.glb",
+                    "lawyer.glb"
                   ]}
                 />
               )}
