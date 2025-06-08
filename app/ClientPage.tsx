@@ -175,10 +175,16 @@ export default function ClientPage() {
                 <ModelCarousel
                   models={[
                     "classof.glb",
-                    "veni.glb",
+                    "ladyLaw.glb",
+                    "graduateBaby.glb",
+                    "engineer.glb",
+                    "lawyer.glb",
+                    "nurse.glb",
+                    "justdidit.glb",
+                    "lawyerWavy.glb",
                     "result.glb",
-                    "plain.glb",
-                    "lawyer.glb"
+                    "veni.glb",
+                    "judgeMe.glb"
                   ]}
                 />
               )}
